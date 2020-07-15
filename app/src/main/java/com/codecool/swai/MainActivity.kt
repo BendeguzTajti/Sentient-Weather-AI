@@ -11,6 +11,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 class MainActivity : AppCompatActivity() {
 
     private lateinit var bottomSheet: BottomSheetBehavior<NestedScrollView>
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -22,10 +23,12 @@ class MainActivity : AppCompatActivity() {
     private fun addBottomSheetListener() {
         bottomSheet.addBottomSheetCallback(object: BottomSheetBehavior.BottomSheetCallback() {
             override fun onSlide(bottomSheet: View, slideOffset: Float) {
-                if (mainPage.isAnimating) {
+                if (mainPage.isAnimating && slideOffset < 1.0f && slideOffset > 0.0f) {
                     mainPage.pauseAnimation()
                 }
-                swipeIndicator.visibility = View.INVISIBLE
+                if (slideOffset < 1.0f && slideOffset > 0.0f) {
+                    swipeIndicator.visibility = View.INVISIBLE
+                }
             }
 
             override fun onStateChanged(bottomSheet: View, newState: Int) {
