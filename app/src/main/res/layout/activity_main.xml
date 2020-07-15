@@ -19,11 +19,11 @@
         tools:src="@drawable/background_placeholder" />
 
     <androidx.core.widget.NestedScrollView
-        android:id="@+id/nestedScrollView"
+        android:id="@+id/detailsPage"
         android:layout_width="match_parent"
         android:layout_height="350dp"
         android:background="@color/colorDayDetails"
-        app:behavior_hideable="true"
+        app:behavior_hideable="false"
         app:behavior_peekHeight="@dimen/bottomsheet_peek_height"
         app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
         app:layout_insetEdge="bottom">
@@ -33,6 +33,7 @@
             android:layout_height="match_parent">
 
             <com.airbnb.lottie.LottieAnimationView
+                android:id="@+id/swipeIndicator"
                 android:layout_width="@dimen/bottomsheet_peek_height"
                 android:layout_height="@dimen/bottomsheet_peek_height"
                 app:layout_constraintEnd_toEndOf="parent"
