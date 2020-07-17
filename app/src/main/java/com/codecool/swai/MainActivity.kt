@@ -21,7 +21,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun addBottomSheetListener() {
-        bottomSheet.addBottomSheetCallback(object: BottomSheetBehavior.BottomSheetCallback() {
+        bottomSheet.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
             override fun onSlide(bottomSheet: View, slideOffset: Float) {
                 if (mainPage.isAnimating && slideOffset < 1.0f && slideOffset > 0.0f) {
                     mainPage.pauseAnimation()
