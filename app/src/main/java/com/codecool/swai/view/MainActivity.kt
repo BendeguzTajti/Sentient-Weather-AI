@@ -56,7 +56,7 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
 
         })
     }
-    
+
     override fun displayError() {
         TODO("Not yet implemented")
     }
