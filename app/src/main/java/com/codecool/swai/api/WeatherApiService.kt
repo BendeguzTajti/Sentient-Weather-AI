@@ -12,14 +12,30 @@ import retrofit2.http.Query
 interface WeatherApiService {
 
     @GET("weather")
-    fun getCurrentWeather(@Query("q") q: String,
-                          @Query("units") units: String,
-                          @Query("APPID") APPID: String): Single<WeatherCurrent.Result>
+    fun getCurrentWeatherByCity(@Query("q") q: String,
+                                @Query("units") units: String,
+                                @Query("APPID") APPID: String,
+                                @Query("lang") lang: String): Single<WeatherCurrent.Result>
 
     @GET("forecast")
-    fun getWeatherForecast(@Query("q") q: String,
-                          @Query("units") units: String,
-                          @Query("APPID") APPID: String): Single<WeatherForecast.Result>
+    fun getWeatherForecastByCity(@Query("q") q: String,
+                                 @Query("units") units: String,
+                                 @Query("APPID") APPID: String,
+                                 @Query("lang") lang: String): Single<WeatherForecast.Result>
+
+    @GET("weather")
+    fun getCurrentWeatherByCoordinates(@Query("lat") lat: Double,
+                                       @Query("lon") lon: Double,
+                                       @Query("units") units: String,
+                                       @Query("APPID") APPID: String,
+                                       @Query("lang") lang: String): Single<WeatherCurrent.Result>
+
+    @GET("forecast")
+    fun getWeatherForecastByCoordinates(@Query("lat") lat: Double,
+                                        @Query("lon") lon: Double,
+                                        @Query("units") units: String,
+                                        @Query("APPID") APPID: String,
+                                        @Query("lang") lang: String): Single<WeatherForecast.Result>
 
     companion object {
         private const val BASE_URL = "http://api.openweathermap.org/data/2.5/"
