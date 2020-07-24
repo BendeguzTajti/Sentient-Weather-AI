@@ -1,4 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="bottomsheet_peek_height">48dp</dimen>
+    <dimen name="current_temp_text_size">60sp</dimen>
+    <dimen name="city_name_text_size">20sp</dimen>
+    <dimen name="description_text_size">15sp</dimen>
+    <dimen name="description_margin_top">5dp</dimen>
+    <dimen name="text_padding_default">5dp</dimen>
+    <dimen name="main_temp_margin_top">100dp</dimen>
+    <dimen name="main_page_margin_default">10dp</dimen>
 </resources>

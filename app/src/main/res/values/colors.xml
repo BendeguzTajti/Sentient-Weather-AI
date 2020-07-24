@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#6200EE</color>
+    <color name="colorPrimary">#FAFAFA</color>
     <color name="colorPrimaryDark">#3700B3</color>
     <color name="colorAccent">#03DAC5</color>
     <color name="colorTransparent">#00FFFFFF</color>
     <color name="colorDaySky">#81BEF0</color>
     <color name="colorDayDetails">#333333</color>
-    <color name="colorNightSky">#5A3A79</color>
+    <color name="colorNightSky">#5F4577</color>
     <color name="colorNightDetails">#361B4A</color>
 </resources>
