@@ -2,12 +2,13 @@
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/rootLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    tools:context=".view.MainActivity">
 
     <com.airbnb.lottie.LottieAnimationView
-        android:id="@+id/mainPage"
+        android:id="@+id/mainBackground"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scaleType="centerCrop"
@@ -15,18 +16,73 @@
         app:layout_dodgeInsetEdges="bottom"
         app:lottie_autoPlay="true"
         app:lottie_loop="false"
-        app:lottie_rawRes="@raw/day_background"
         tools:src="@drawable/background_placeholder" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/mainPageData"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="invisible"
+        app:layout_dodgeInsetEdges="bottom"
+        tools:visibility="visible">
+
+        <TextView
+            android:id="@+id/mainTemp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/main_page_margin_default"
+            android:layout_marginLeft="@dimen/main_page_margin_default"
+            android:layout_marginTop="@dimen/main_temp_margin_top"
+            android:fontFamily="@font/montserrat"
+            android:padding="@dimen/text_padding_default"
+            android:textColor="@color/colorPrimary"
+            android:textSize="@dimen/current_temp_text_size"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="30°C" />
+
+        <TextView
+            android:id="@+id/cityName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/main_page_margin_default"
+            android:layout_marginLeft="@dimen/main_page_margin_default"
+            android:fontFamily="@font/montserrat"
+            android:padding="@dimen/text_padding_default"
+            android:textColor="@color/colorPrimary"
+            android:textSize="@dimen/city_name_text_size"
+            android:textStyle="bold"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/mainTemp"
+            tools:text="Budapest" />
+
+        <TextView
+            android:id="@+id/description"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/main_page_margin_default"
+            android:layout_marginLeft="@dimen/main_page_margin_default"
+            android:layout_marginTop="@dimen/description_margin_top"
+            android:fontFamily="@font/montserrat"
+            android:padding="@dimen/text_padding_default"
+            android:textColor="@color/colorPrimary"
+            android:textSize="@dimen/description_text_size"
+            android:textStyle="bold"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/cityName"
+            tools:text="Cloudy" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.core.widget.NestedScrollView
         android:id="@+id/detailsPage"
         android:layout_width="match_parent"
         android:layout_height="350dp"
-        android:background="@color/colorDayDetails"
         app:behavior_hideable="false"
         app:behavior_peekHeight="@dimen/bottomsheet_peek_height"
         app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
-        app:layout_insetEdge="bottom">
+        app:layout_insetEdge="bottom"
+        tools:background="@color/colorDayDetails">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
