@@ -1,12 +1,15 @@
 package com.codecool.swai.presenter
 
 import android.os.Looper
+import android.view.View
+import androidx.core.widget.NestedScrollView
 import com.codecool.swai.R
 import com.codecool.swai.contract.WeatherContract
 import com.codecool.swai.model.DataManager
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import java.net.HttpURLConnection
@@ -84,6 +87,33 @@ class WeatherPresenter(view: WeatherContract.WeatherView) : WeatherContract.Weat
                     }
                 },
                 { view?.displayError() })
+    }
+
+    override fun addBottomSheetListener(bottomSheet: BottomSheetBehavior<NestedScrollView>) {
+        bottomSheet.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
+
+            override fun onSlide(bottomSheet: View, slideOffset: Float) {
+                if (view!!.isBackgroundAnimating() && slideOffset < 1.0f && slideOffset > 0.0f) {
+                    view?.pauseBackgroundAnimation()
+                }
+                if (slideOffset < 1.0f && slideOffset > 0.0f) {
+                    view?.hideSwipeIndicator()
+                }
+            }
+
+            override fun onStateChanged(bottomSheet: View, newState: Int) {
+                if (view!!.getBackgroundAnimationProgress() > 0.0f) {
+                    view?.resumeBackgroundAnimation()
+                }
+                if (newState == BottomSheetBehavior.STATE_EXPANDED) {
+                    view?.changeSwipeIndicatorAnimation(R.raw.swipe_down)
+                } else if (newState == BottomSheetBehavior.STATE_COLLAPSED) {
+                    view?.changeSwipeIndicatorAnimation(R.raw.swipe_up)
+                }
+                view?.showSwipeIndicator()
+            }
+            
+        })
     }
 
     override fun onDetach() {

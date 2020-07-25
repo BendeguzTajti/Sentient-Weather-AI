@@ -85,9 +85,38 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
 
     override fun displayDetailsPage(forecastWeather: WeatherForecast.Result) {
         Log.d(".MainActivity", "displayDetailsPage: $forecastWeather")
-        addBottomSheetListener()
+        presenter.addBottomSheetListener(bottomSheet)
     }
 
+    override fun isBackgroundAnimating(): Boolean {
+        return mainBackground.isAnimating
+    }
+
+    override fun pauseBackgroundAnimation() {
+        mainBackground.pauseAnimation()
+    }
+
+    override fun resumeBackgroundAnimation() {
+        mainBackground.resumeAnimation()
+    }
+
+    override fun getBackgroundAnimationProgress(): Float {
+        return mainBackground.progress
+    }
+
+    override fun hideSwipeIndicator() {
+        swipeIndicator.visibility = View.INVISIBLE
+    }
+
+    override fun showSwipeIndicator() {
+        swipeIndicator.visibility = View.VISIBLE
+    }
+
+    override fun changeSwipeIndicatorAnimation(newAnimation: Int) {
+        swipeIndicator.setAnimation(newAnimation)
+        swipeIndicator.progress = 0.0f
+        swipeIndicator.playAnimation()
+    }
 
     override fun displayError() {
         TODO("Not yet implemented")
@@ -116,32 +145,5 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
         }
         val dialog = builder.create()
         dialog.show()
-    }
-
-    private fun addBottomSheetListener() {
-        bottomSheet.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
-            override fun onSlide(bottomSheet: View, slideOffset: Float) {
-                if (mainBackground.isAnimating && slideOffset < 1.0f && slideOffset > 0.0f) {
-                    mainBackground.pauseAnimation()
-                }
-                if (slideOffset < 1.0f && slideOffset > 0.0f) {
-                    swipeIndicator.visibility = View.INVISIBLE
-                }
-            }
-
-            override fun onStateChanged(bottomSheet: View, newState: Int) {
-                if (mainBackground.progress > 0.0f) {
-                    mainBackground.resumeAnimation()
-                }
-                if (newState == BottomSheetBehavior.STATE_EXPANDED) {
-                    swipeIndicator.setAnimation(R.raw.swipe_down)
-                } else if (newState == BottomSheetBehavior.STATE_COLLAPSED) {
-                    swipeIndicator.setAnimation(R.raw.swipe_up)
-                }
-                swipeIndicator.playAnimation()
-                swipeIndicator.visibility = View.VISIBLE
-            }
-
-        })
     }
 }
