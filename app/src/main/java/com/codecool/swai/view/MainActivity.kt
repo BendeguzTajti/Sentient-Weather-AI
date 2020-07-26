@@ -63,7 +63,7 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
         return false
     }
 
-    override fun createMainPageTheme(backgroundImage: Int, colorSky: Int, colorDetailsPage: Int) {
+    override fun createMainPageTheme(weatherIcon: Int, backgroundImage: Int, colorSky: Int, colorDetailsPage: Int) {
         mainBackground.setAnimation(backgroundImage)
         mainBackground.addLottieOnCompositionLoadedListener {
             rootLayout.setBackgroundColor(ContextCompat.getColor(this, colorSky))
@@ -71,7 +71,8 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
             cityName.setBackgroundColor(ContextCompat.getColor(this, colorSky))
             description.setBackgroundColor(ContextCompat.getColor(this, colorSky))
             detailsPage.setBackgroundColor(ContextCompat.getColor(this, colorDetailsPage))
-            mainPageData.visibility = View.VISIBLE
+            mainWeatherIcon.setAnimation(weatherIcon)
+            mainWeatherIcon.addLottieOnCompositionLoadedListener{ mainPageData.visibility = View.VISIBLE }
         }
     }
 

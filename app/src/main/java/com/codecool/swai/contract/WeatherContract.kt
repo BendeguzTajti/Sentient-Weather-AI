@@ -11,7 +11,7 @@ interface WeatherContract {
     interface WeatherView: BaseContract.BaseView {
         fun getLocationProvider(): FusedLocationProviderClient
         fun checkLocationPermission(): Boolean
-        fun createMainPageTheme(backgroundImage: Int, colorSky: Int, colorDetailsPage: Int)
+        fun createMainPageTheme(weatherIcon: Int, backgroundImage: Int, colorSky: Int, colorDetailsPage: Int)
         fun displayMainPage(currentWeather: WeatherCurrent.Result)
         fun displayDetailsPage(forecastWeather: WeatherForecast.Result)
         fun isBackgroundAnimating(): Boolean
