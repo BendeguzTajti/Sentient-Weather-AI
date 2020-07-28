@@ -12,8 +12,8 @@ interface WeatherContract {
         fun getLocationProvider(): FusedLocationProviderClient
         fun checkLocationPermission(): Boolean
         fun createMainPageTheme(weatherIcon: Int, backgroundImage: Int, colorSky: Int, colorDetailsPage: Int)
-        fun displayMainPage(currentWeather: WeatherCurrent.Result)
-        fun displayDetailsPage(forecastWeather: WeatherForecast.Result)
+        fun displayCurrentWeatherData(currentWeather: WeatherCurrent.Result)
+        fun displayForecastWeatherData(forecastWeather: WeatherForecast.Result)
         fun isBackgroundAnimating(): Boolean
         fun pauseBackgroundAnimation()
         fun resumeBackgroundAnimation()
@@ -25,8 +25,7 @@ interface WeatherContract {
 
     interface WeatherPresenter: BaseContract.BasePresenter {
         fun getUserCoordinates()
-        fun getWeatherDataByCity(cityName: String)
-        fun getWeatherDataByCoordinates(latitude: Double, longitude: Double)
+        fun getWeatherData(latitude: Double, longitude: Double)
         fun addBottomSheetListener(bottomSheet: BottomSheetBehavior<NestedScrollView>)
     }
 }
