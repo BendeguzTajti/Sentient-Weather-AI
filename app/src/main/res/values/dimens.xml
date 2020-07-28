@@ -8,4 +8,13 @@
     <dimen name="text_padding_default">5dp</dimen>
     <dimen name="main_temp_margin_top">100dp</dimen>
     <dimen name="main_page_margin_default">10dp</dimen>
+    <dimen name="nested_scrollview_min_height">350dp</dimen>
+    <dimen name="recyclerview_margin">20dp</dimen>
+    <dimen name="circle_button_size">70dp</dimen>
+    <dimen name="speech_button_margin">20dp</dimen>
+    <dimen name="current_weather_icon_size">100dp</dimen>
+    <dimen name="speech_button_padding">15dp</dimen>
+    <dimen name="card_elevation">0dp</dimen>
+    <dimen name="forecast_logo_size">50dp</dimen>
+    <dimen name="forecast_item_padding">10dp</dimen>
 </resources>
