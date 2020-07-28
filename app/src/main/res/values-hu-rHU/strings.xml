@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SWAI</string>
+    <string name="type_clear">Tiszta</string>
+    <string name="type_clouds">Felhős</string>
+    <string name="type_mist">Köd</string>
+    <string name="type_snow">Hó</string>
+    <string name="type_rain">Eső</string>
+    <string name="type_drizzle">Zápor</string>
+    <string name="type_thunder">Zivatar</string>
+</resources>
