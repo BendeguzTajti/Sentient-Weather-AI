@@ -11,7 +11,9 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.widget.NestedScrollView
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.codecool.swai.R
+import com.codecool.swai.adapter.ForecastAdapter
 import com.codecool.swai.contract.WeatherContract
 import com.codecool.swai.model.WeatherCurrent
 import com.codecool.swai.model.WeatherForecast
@@ -20,13 +22,13 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import kotlinx.android.synthetic.main.activity_main.*
-import java.util.*
 
 
 class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
 
     private val FINE_LOCATION_RQ = 101
     private val presenter: WeatherContract.WeatherPresenter = WeatherPresenter(this)
+    private val forecastAdapter = ForecastAdapter()
     private lateinit var bottomSheet: BottomSheetBehavior<NestedScrollView>
     private lateinit var locationProvider: FusedLocationProviderClient
 
@@ -34,6 +36,8 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+        recyclerView.adapter = forecastAdapter
+        recyclerView.layoutManager = LinearLayoutManager(this)
         bottomSheet = BottomSheetBehavior.from(detailsPage)
         locationProvider = LocationServices.getFusedLocationProviderClient(this)
         checkForPermission(Manifest.permission.ACCESS_FINE_LOCATION, FINE_LOCATION_RQ, getString(R.string.location_dialog_message))
@@ -76,16 +80,14 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
         }
     }
 
-    override fun displayMainPage(currentWeather: WeatherCurrent.Result) {
-        Log.d(".MainActivity", "displayMainPage: $currentWeather")
-        val locationName = if (Locale.getDefault().language == "hu") currentWeather.name.replace("keruelet", "kerület") else currentWeather.name
-        mainTemp.text = currentWeather.main.temp.toInt().toString() + "°C"
-        cityName.text = locationName
+    override fun displayCurrentWeatherData(currentWeather: WeatherCurrent.Result) {
+        mainTemp.text = currentWeather.main.getTempCelsius()
+        cityName.text = currentWeather.getLocationName()
         description.text = currentWeather.weather[0].description
     }
 
-    override fun displayDetailsPage(forecastWeather: WeatherForecast.Result) {
-        Log.d(".MainActivity", "displayDetailsPage: $forecastWeather")
+    override fun displayForecastWeatherData(forecastWeather: WeatherForecast.Result) {
+        forecastAdapter.setForecastData(forecastWeather.daily.subList(0, 3))
         presenter.addBottomSheetListener(bottomSheet)
     }
 
