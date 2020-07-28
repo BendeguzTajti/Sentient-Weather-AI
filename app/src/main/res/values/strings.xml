@@ -3,4 +3,11 @@
     <string name="dialog_title">Permission Required</string>
     <string name="location_dialog_message">This app needs to access your location in order to work</string>
     <string name="dialog_positive_button">OK</string>
+    <string name="type_thunder">Thunderstorm</string>
+    <string name="type_drizzle">Drizzle</string>
+    <string name="type_rain">Rain</string>
+    <string name="type_snow">Snow</string>
+    <string name="type_clear">Clear</string>
+    <string name="type_clouds">Clouds</string>
+    <string name="type_mist">Mist</string>
 </resources>
