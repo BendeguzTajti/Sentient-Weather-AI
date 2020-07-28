@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.speech.SpeechRecognizer
 import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AlertDialog
@@ -27,8 +28,10 @@ import kotlinx.android.synthetic.main.activity_main.*
 class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
 
     private val FINE_LOCATION_RQ = 101
+    private val RECORD_AUDIO_RQ = 102
     private val presenter: WeatherContract.WeatherPresenter = WeatherPresenter(this)
     private val forecastAdapter = ForecastAdapter()
+    private val speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this)
     private lateinit var bottomSheet: BottomSheetBehavior<NestedScrollView>
     private lateinit var locationProvider: FusedLocationProviderClient
 
@@ -41,6 +44,7 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
         bottomSheet = BottomSheetBehavior.from(detailsPage)
         locationProvider = LocationServices.getFusedLocationProviderClient(this)
         checkForPermission(Manifest.permission.ACCESS_FINE_LOCATION, FINE_LOCATION_RQ, getString(R.string.location_dialog_message))
+        speechButton.setOnClickListener { checkForPermission(Manifest.permission.RECORD_AUDIO, RECORD_AUDIO_RQ, getString(R.string.record_audio_dialog_message)) }
     }
 
     override fun onDestroy() {
@@ -50,9 +54,14 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         if (grantResults.isEmpty() || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-            finish()
+            if (requestCode == FINE_LOCATION_RQ) {
+                finish()
+            }
         } else {
-            presenter.getUserCoordinates()
+            when(requestCode) {
+                FINE_LOCATION_RQ -> presenter.getUserCoordinates()
+                RECORD_AUDIO_RQ -> presenter.startSpeechRecognition(speechRecognizer)
+            }
         }
     }
 
@@ -129,7 +138,10 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             when {
                 ContextCompat.checkSelfPermission(applicationContext, permission) == PackageManager.PERMISSION_GRANTED -> {
-                    presenter.getUserCoordinates()
+                    when(permission) {
+                        Manifest.permission.ACCESS_FINE_LOCATION -> presenter.getUserCoordinates()
+                        Manifest.permission.RECORD_AUDIO -> presenter.startSpeechRecognition(speechRecognizer)
+                    }
                 }
                 shouldShowRequestPermissionRationale(permission) -> showDialog(message, permission, requestCode)
                 else -> ActivityCompat.requestPermissions(this, arrayOf(permission), requestCode)
