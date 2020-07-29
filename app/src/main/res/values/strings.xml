@@ -10,4 +10,7 @@
     <string name="type_clear">Clear</string>
     <string name="type_clouds">Clouds</string>
     <string name="type_mist">Mist</string>
+    <string name="record_audio_dialog_message">The speech recognition feature needs to access your microphone in order to work</string>
+    <string name="missing_recognizer_message">This feature is not available on this device</string>
+    <string name="no_connection_message">Connection lost</string>
 </resources>
