@@ -1,34 +1,44 @@
 package com.codecool.swai.presenter
 
+import android.content.Intent
+import android.location.Geocoder
+import android.os.Bundle
 import android.os.Looper
+import android.speech.RecognitionListener
+import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
+import android.util.Log
 import android.view.View
 import androidx.core.widget.NestedScrollView
 import com.codecool.swai.R
 import com.codecool.swai.contract.WeatherContract
 import com.codecool.swai.model.DataManager
 import com.codecool.swai.model.Weather
+import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import java.net.HttpURLConnection
+import java.util.ArrayList
 
 class WeatherPresenter(view: WeatherContract.WeatherView) : WeatherContract.WeatherPresenter {
 
     private var view: WeatherContract.WeatherView? = view
     private val dataManager = DataManager()
+    private var disposable: Disposable? = null
 
 
-    override fun getUserCoordinates() {
-        val locationProvider = view?.getLocationProvider()
+    override fun getUserCoordinates(locationProvider: FusedLocationProviderClient) {
         val locationRequest = LocationRequest()
         locationRequest.interval = 10000
         locationRequest.fastestInterval = 3000
         locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
         if (view?.checkLocationPermission() == true) {
-            locationProvider?.requestLocationUpdates(locationRequest, object : LocationCallback() {
+            locationProvider.requestLocationUpdates(locationRequest, object : LocationCallback() {
                 override fun onLocationResult(locationResult: LocationResult?) {
                     super.onLocationResult(locationResult)
                     locationProvider.removeLocationUpdates(this)
@@ -44,7 +54,7 @@ class WeatherPresenter(view: WeatherContract.WeatherView) : WeatherContract.Weat
     }
 
     override fun getWeatherData(latitude: Double, longitude: Double) {
-        dataManager.getWeatherDataByCoordinates(latitude, longitude)
+        disposable = dataManager.getWeatherDataByCoordinates(latitude, longitude)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(
@@ -56,22 +66,19 @@ class WeatherPresenter(view: WeatherContract.WeatherView) : WeatherContract.Weat
         bottomSheet.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
 
             override fun onSlide(bottomSheet: View, slideOffset: Float) {
-                if (view!!.isBackgroundAnimating() && slideOffset < 1.0f && slideOffset > 0.0f) {
-                    view?.pauseBackgroundAnimation()
-                }
                 if (slideOffset < 1.0f && slideOffset > 0.0f) {
                     view?.hideSwipeIndicator()
                 }
             }
 
             override fun onStateChanged(bottomSheet: View, newState: Int) {
-                if (view!!.getBackgroundAnimationProgress() > 0.0f) {
-                    view?.resumeBackgroundAnimation()
-                }
-                if (newState == BottomSheetBehavior.STATE_EXPANDED) {
-                    view?.changeSwipeIndicatorAnimation(R.raw.swipe_down)
-                } else if (newState == BottomSheetBehavior.STATE_COLLAPSED) {
-                    view?.changeSwipeIndicatorAnimation(R.raw.swipe_up)
+                when(newState) {
+                    BottomSheetBehavior.STATE_EXPANDED -> view?.changeSwipeIndicatorAnimation(R.raw.swipe_down)
+                    BottomSheetBehavior.STATE_DRAGGING -> view?.pauseBackgroundAnimations()
+                    BottomSheetBehavior.STATE_COLLAPSED -> {
+                        view?.resumeBackgroundAnimations()
+                        view?.changeSwipeIndicatorAnimation(R.raw.swipe_up)
+                    } else -> {}
                 }
                 view?.showSwipeIndicator()
             }
@@ -79,7 +86,61 @@ class WeatherPresenter(view: WeatherContract.WeatherView) : WeatherContract.Weat
         })
     }
 
+    override fun startSpeechRecognition(speechRecognizer: SpeechRecognizer?, packageName: String) {
+        if (speechRecognizer == null) {
+            view?.showToast(R.string.missing_recognizer_message)
+        } else {
+            val speechIntent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+            speechIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            speechIntent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, packageName)
+            speechRecognizer.setRecognitionListener(object : RecognitionListener {
+                override fun onReadyForSpeech(params: Bundle?) {
+
+                }
+
+                override fun onRmsChanged(rmsdB: Float) {
+
+                }
+
+                override fun onBufferReceived(buffer: ByteArray?) {
+
+                }
+
+                override fun onPartialResults(partialResults: Bundle?) {
+
+                }
+
+                override fun onEvent(eventType: Int, params: Bundle?) {
+
+                }
+
+                override fun onBeginningOfSpeech() {
+
+                }
+
+                override fun onEndOfSpeech() {
+
+                }
+
+                override fun onError(error: Int) {
+                    if (error == SpeechRecognizer.ERROR_NETWORK || error == SpeechRecognizer.ERROR_SERVER) {
+                        view?.showToast(R.string.no_connection_message)
+                    }
+                }
+
+                override fun onResults(results: Bundle?) {
+                    val matches: ArrayList<String>? = results!!.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                    val speechInput: String = matches!![0]
+                    getCoordinatesBySpeech(speechInput)
+                }
+
+            })
+            speechRecognizer.startListening(speechIntent)
+        }
+    }
+
     override fun onDetach() {
+        disposable?.dispose()
         this.view = null
     }
 
@@ -97,6 +158,9 @@ class WeatherPresenter(view: WeatherContract.WeatherView) : WeatherContract.Weat
         } else {
             view?.displayError()
         }
+    }
+
+    private fun getCoordinatesBySpeech(cityName: String) {
     }
 
 }

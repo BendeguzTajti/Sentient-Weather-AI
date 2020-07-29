@@ -6,8 +6,8 @@ import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.speech.SpeechRecognizer
-import android.util.Log
 import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -27,13 +27,14 @@ import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
 
-    private val FINE_LOCATION_RQ = 101
-    private val RECORD_AUDIO_RQ = 102
+    private val fineLocationRQ = 101
+    private val recordAudioRQ = 102
     private val presenter: WeatherContract.WeatherPresenter = WeatherPresenter(this)
     private val forecastAdapter = ForecastAdapter()
-    private val speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this)
+    private var speechRecognizer: SpeechRecognizer? = null
     private lateinit var bottomSheet: BottomSheetBehavior<NestedScrollView>
     private lateinit var locationProvider: FusedLocationProviderClient
+    private lateinit var toast: Toast
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,32 +42,37 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
         window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
         recyclerView.adapter = forecastAdapter
         recyclerView.layoutManager = LinearLayoutManager(this)
+        speechRecognizer = if (SpeechRecognizer.isRecognitionAvailable(this)) SpeechRecognizer.createSpeechRecognizer(this) else null
         bottomSheet = BottomSheetBehavior.from(detailsPage)
         locationProvider = LocationServices.getFusedLocationProviderClient(this)
-        checkForPermission(Manifest.permission.ACCESS_FINE_LOCATION, FINE_LOCATION_RQ, getString(R.string.location_dialog_message))
-        speechButton.setOnClickListener { checkForPermission(Manifest.permission.RECORD_AUDIO, RECORD_AUDIO_RQ, getString(R.string.record_audio_dialog_message)) }
+        checkForPermission(Manifest.permission.ACCESS_FINE_LOCATION, fineLocationRQ, getString(R.string.location_dialog_message))
+        speechButton.setOnClickListener { checkForPermission(Manifest.permission.RECORD_AUDIO, recordAudioRQ, getString(R.string.record_audio_dialog_message)) }
+    }
+
+    override fun onPause() {
+        if (this::toast.isInitialized) {
+            toast.cancel()
+        }
+        super.onPause()
     }
 
     override fun onDestroy() {
         presenter.onDetach()
+        speechRecognizer?.destroy()
         super.onDestroy()
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         if (grantResults.isEmpty() || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-            if (requestCode == FINE_LOCATION_RQ) {
+            if (requestCode == fineLocationRQ) {
                 finish()
             }
         } else {
             when(requestCode) {
-                FINE_LOCATION_RQ -> presenter.getUserCoordinates()
-                RECORD_AUDIO_RQ -> presenter.startSpeechRecognition(speechRecognizer)
+                fineLocationRQ -> presenter.getUserCoordinates(locationProvider)
+                recordAudioRQ -> presenter.startSpeechRecognition(speechRecognizer, application.packageName)
             }
         }
-    }
-
-    override fun getLocationProvider(): FusedLocationProviderClient {
-        return locationProvider
     }
 
     override fun checkLocationPermission(): Boolean {
@@ -100,20 +106,18 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
         presenter.addBottomSheetListener(bottomSheet)
     }
 
-    override fun isBackgroundAnimating(): Boolean {
-        return mainBackground.isAnimating
+    override fun pauseBackgroundAnimations() {
+        if (mainBackground.isAnimating) {
+            mainBackground.pauseAnimation()
+        }
+        mainWeatherIcon.pauseAnimation()
     }
 
-    override fun pauseBackgroundAnimation() {
-        mainBackground.pauseAnimation()
-    }
-
-    override fun resumeBackgroundAnimation() {
-        mainBackground.resumeAnimation()
-    }
-
-    override fun getBackgroundAnimationProgress(): Float {
-        return mainBackground.progress
+    override fun resumeBackgroundAnimations() {
+        if (mainBackground.progress < 0.99f) {
+            mainBackground.resumeAnimation()
+        }
+        mainWeatherIcon.resumeAnimation()
     }
 
     override fun hideSwipeIndicator() {
@@ -130,6 +134,14 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
         swipeIndicator.playAnimation()
     }
 
+    override fun showToast(message: Int) {
+        if (this::toast.isInitialized) {
+            toast.cancel()
+        }
+        toast = Toast.makeText(this, getString(message), Toast.LENGTH_SHORT)
+        toast.show()
+    }
+
     override fun displayError() {
         TODO("Not yet implemented")
     }
@@ -139,8 +151,8 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
             when {
                 ContextCompat.checkSelfPermission(applicationContext, permission) == PackageManager.PERMISSION_GRANTED -> {
                     when(permission) {
-                        Manifest.permission.ACCESS_FINE_LOCATION -> presenter.getUserCoordinates()
-                        Manifest.permission.RECORD_AUDIO -> presenter.startSpeechRecognition(speechRecognizer)
+                        Manifest.permission.ACCESS_FINE_LOCATION -> presenter.getUserCoordinates(locationProvider)
+                        Manifest.permission.RECORD_AUDIO -> presenter.startSpeechRecognition(speechRecognizer, application.packageName)
                     }
                 }
                 shouldShowRequestPermissionRationale(permission) -> showDialog(message, permission, requestCode)
