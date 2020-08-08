@@ -7,23 +7,28 @@ import android.os.Looper
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
-import android.util.Log
 import android.view.View
 import androidx.core.widget.NestedScrollView
 import com.codecool.swai.R
 import com.codecool.swai.contract.WeatherContract
 import com.codecool.swai.model.DataManager
 import com.codecool.swai.model.Weather
+import com.codecool.swai.view.MainActivity.Companion.dayBackground
+import com.codecool.swai.view.MainActivity.Companion.nightBackground
+import com.google.android.gms.common.api.ApiException
+import com.google.android.gms.common.api.Status
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
+import java.io.IOException
 import java.net.HttpURLConnection
-import java.util.ArrayList
+import kotlin.collections.ArrayList
 
 class WeatherPresenter(view: WeatherContract.WeatherView) : WeatherContract.WeatherPresenter {
 
@@ -59,7 +64,7 @@ class WeatherPresenter(view: WeatherContract.WeatherView) : WeatherContract.Weat
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(
                 { weather -> processWeatherData(weather) },
-                { view?.displayError() })
+                { error -> view?.displayError(error) })
     }
 
     override fun addBottomSheetListener(bottomSheet: BottomSheetBehavior<NestedScrollView>) {
@@ -86,14 +91,15 @@ class WeatherPresenter(view: WeatherContract.WeatherView) : WeatherContract.Weat
         })
     }
 
-    override fun startSpeechRecognition(speechRecognizer: SpeechRecognizer?, packageName: String) {
-        if (speechRecognizer == null) {
+    override fun startSpeechRecognition(speechRecognizer: SpeechRecognizer?, packageName: String, geoCoder: Geocoder?) {
+        if (speechRecognizer == null || geoCoder == null) {
             view?.showToast(R.string.missing_recognizer_message)
         } else {
             val speechIntent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
             speechIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
             speechIntent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, packageName)
             speechRecognizer.setRecognitionListener(object : RecognitionListener {
+
                 override fun onReadyForSpeech(params: Bundle?) {
 
                 }
@@ -131,7 +137,10 @@ class WeatherPresenter(view: WeatherContract.WeatherView) : WeatherContract.Weat
                 override fun onResults(results: Bundle?) {
                     val matches: ArrayList<String>? = results!!.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                     val speechInput: String = matches!![0]
-                    getCoordinatesBySpeech(speechInput)
+                    disposable = getCoordinatesBySpeech(geoCoder, speechInput)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe { locationList -> if (locationList.isNotEmpty()) getWeatherDataBySpeech(speechInput, locationList[0], locationList[1])}
                 }
 
             })
@@ -149,18 +158,41 @@ class WeatherPresenter(view: WeatherContract.WeatherView) : WeatherContract.Weat
             val currentHour = weather.current.getCurrentHour()
             val currentWeatherIcon = weather.current.weather[0].getWeatherIcon(currentHour)
             if (currentHour in 6..17) {
-                view?.createMainPageTheme(currentWeatherIcon, R.raw.day_background, R.color.colorDaySky, R.color.colorDayDetails)
+                view?.createMainPageTheme(currentWeatherIcon, dayBackground, R.color.colorDaySky, R.color.colorDayDetails)
             } else{
-                view?.createMainPageTheme(currentWeatherIcon, R.raw.night_background, R.color.colorNightSky, R.color.colorNightDetails)
+                view?.createMainPageTheme(currentWeatherIcon, nightBackground, R.color.colorNightSky, R.color.colorNightDetails)
             }
             view?.displayCurrentWeatherData(weather.current)
             view?.displayForecastWeatherData(weather.forecast)
         } else {
-            view?.displayError()
+            view?.displayError(ApiException(Status.RESULT_CANCELED))
         }
     }
 
-    private fun getCoordinatesBySpeech(cityName: String) {
+    private fun getCoordinatesBySpeech(geoCoder: Geocoder, cityName: String): Single<List<Double>> {
+        val locationList = mutableListOf<Double>()
+        try {
+            val addresses = geoCoder.getFromLocationName(cityName, 1)
+            if (addresses.isNotEmpty()) {
+                val location = addresses[0]
+                if (location.hasLatitude() && location.hasLongitude()) {
+                    locationList.add(location.latitude)
+                    locationList.add(location.longitude)
+                }
+            }
+        } catch (e: IOException) {
+            return Single.just(locationList)
+        }
+        return Single.just(locationList)
+    }
+
+    private fun getWeatherDataBySpeech(cityName: String, latitude: Double, longitude: Double) {
+        disposable = dataManager.getWeatherDataBySpeech(cityName, latitude, longitude)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(
+                { weather -> processWeatherData(weather) },
+                { error -> view?.displayError(error) })
     }
 
 }

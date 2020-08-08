@@ -3,7 +3,7 @@ package com.codecool.swai.contract
 interface BaseContract {
 
     interface BaseView {
-        fun displayError()
+        fun displayError(exception: Throwable)
     }
 
     interface BasePresenter {

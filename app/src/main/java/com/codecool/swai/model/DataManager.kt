@@ -8,17 +8,28 @@ import java.util.*
 
 class DataManager {
 
-    private val apiKey = BuildConfig.API_KEY
-
     private val weatherApiService by lazy {
         WeatherApiService.create()
     }
 
     fun getWeatherDataByCoordinates(latitude: Double, longitude: Double): Single<Weather> {
-        val currentWeather = weatherApiService.getCurrentWeather(latitude, longitude, apiKey, Locale.getDefault().language)
-        val forecastWeather = weatherApiService.getWeatherForecast(latitude, longitude, "current,minutely,hourly", apiKey, Locale.getDefault().language)
+        val currentWeather = weatherApiService.getCurrentWeatherByLocation(latitude, longitude, API_KEY, Locale.getDefault().language)
+        val forecastWeather = weatherApiService.getWeatherForecast(latitude, longitude, DATA_TO_EXCLUDE, API_KEY, Locale.getDefault().language)
         return Single.zip(currentWeather, forecastWeather, BiFunction { weather, forecast ->
             Weather(weather, forecast)
         })
+    }
+
+    fun getWeatherDataBySpeech(cityName: String, latitude: Double, longitude: Double): Single<Weather> {
+        val currentWeather = weatherApiService.getCurrentWeatherByCity(cityName, API_KEY, Locale.getDefault().language)
+        val forecastWeather = weatherApiService.getWeatherForecast(latitude, longitude, DATA_TO_EXCLUDE, API_KEY, Locale.getDefault().language)
+        return Single.zip(currentWeather, forecastWeather, BiFunction { weather, forecast ->
+            Weather(weather, forecast)
+        })
+    }
+
+    companion object {
+        private const val API_KEY = BuildConfig.API_KEY
+        private const val DATA_TO_EXCLUDE = "current,minutely,hourly"
     }
 }

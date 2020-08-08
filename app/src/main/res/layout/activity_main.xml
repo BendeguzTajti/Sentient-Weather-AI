@@ -15,6 +15,7 @@
         android:translationY="@dimen/bottomsheet_peek_height"
         app:layout_dodgeInsetEdges="bottom"
         app:lottie_autoPlay="true"
+        app:lottie_enableMergePathsForKitKatAndAbove="true"
         app:lottie_loop="false"
         tools:src="@drawable/background_placeholder" />
 

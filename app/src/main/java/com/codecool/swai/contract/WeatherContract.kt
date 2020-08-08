@@ -1,7 +1,9 @@
 package com.codecool.swai.contract
 
+import android.location.Geocoder
 import android.speech.SpeechRecognizer
 import androidx.core.widget.NestedScrollView
+import com.airbnb.lottie.LottieComposition
 import com.codecool.swai.model.WeatherCurrent
 import com.codecool.swai.model.WeatherForecast
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -11,7 +13,7 @@ interface WeatherContract {
 
     interface WeatherView: BaseContract.BaseView {
         fun checkLocationPermission(): Boolean
-        fun createMainPageTheme(weatherIcon: Int, backgroundImage: Int, colorSky: Int, colorDetailsPage: Int)
+        fun createMainPageTheme(weatherIcon: Int, background: LottieComposition, colorSky: Int, colorDetailsPage: Int)
         fun displayCurrentWeatherData(currentWeather: WeatherCurrent.Result)
         fun displayForecastWeatherData(forecastWeather: WeatherForecast.Result)
         fun pauseBackgroundAnimations()
@@ -26,6 +28,6 @@ interface WeatherContract {
         fun getUserCoordinates(locationProvider: FusedLocationProviderClient)
         fun getWeatherData(latitude: Double, longitude: Double)
         fun addBottomSheetListener(bottomSheet: BottomSheetBehavior<NestedScrollView>)
-        fun startSpeechRecognition(speechRecognizer: SpeechRecognizer?, packageName: String)
+        fun startSpeechRecognition(speechRecognizer: SpeechRecognizer?, packageName: String, geoCoder: Geocoder?)
     }
 }

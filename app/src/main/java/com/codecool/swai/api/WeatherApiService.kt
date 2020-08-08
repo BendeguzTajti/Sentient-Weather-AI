@@ -12,10 +12,15 @@ import retrofit2.http.Query
 interface WeatherApiService {
 
     @GET("weather")
-    fun getCurrentWeather(@Query("lat") lat: Double,
-                          @Query("lon") lon: Double,
-                          @Query("APPID") APPID: String,
-                          @Query("lang") lang: String): Single<WeatherCurrent.Result>
+    fun getCurrentWeatherByLocation(@Query("lat") lat: Double,
+                                    @Query("lon") lon: Double,
+                                    @Query("APPID") APPID: String,
+                                    @Query("lang") lang: String): Single<WeatherCurrent.Result>
+
+    @GET("weather")
+    fun getCurrentWeatherByCity(@Query("q") q: String,
+                                    @Query("APPID") APPID: String,
+                                    @Query("lang") lang: String): Single<WeatherCurrent.Result>
 
     @GET("onecall")
     fun getWeatherForecast(@Query("lat") lat: Double,

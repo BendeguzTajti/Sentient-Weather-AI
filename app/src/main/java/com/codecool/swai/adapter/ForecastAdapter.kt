@@ -32,6 +32,7 @@ class ForecastAdapter : RecyclerView.Adapter<ForecastAdapter.ViewHolder>() {
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val currentForecast = forecastData[position]
         holder.forecastIcon.setAnimation(currentForecast.weather[0].getWeatherIcon())
+        holder.forecastIcon.progress = 0.09f
         holder.forecastDay.text = currentForecast.getDay()
         holder.forecastWeatherType.text = holder.context.getString(currentForecast.weather[0].getWeatherType())
         holder.forecastMinMaxTemp.text = currentForecast.temp.getMinMaxTempCelsius()
