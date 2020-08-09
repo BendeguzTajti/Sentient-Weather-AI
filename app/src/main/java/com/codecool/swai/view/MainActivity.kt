@@ -56,8 +56,6 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
         bottomSheet = BottomSheetBehavior.from(detailsPage)
         locationProvider = LocationServices.getFusedLocationProviderClient(this)
         geoCoder = if (Geocoder.isPresent()) Geocoder(this, Locale.getDefault()) else null
-        checkForPermission(Manifest.permission.ACCESS_FINE_LOCATION, FINE_LOCATION_RQ, getString(R.string.location_dialog_message))
-        speechButton.setOnClickListener { checkForPermission(Manifest.permission.RECORD_AUDIO, RECORD_AUDIO_RQ, getString(R.string.record_audio_dialog_message)) }
     }
 
     override fun onPause() {
@@ -101,16 +99,13 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
         val currentRootColor = rootLayout.background as ColorDrawable?
         if (currentRootColor?.color != ContextCompat.getColor(this, colorSky)) {
             mainBackground.setComposition(background)
-            mainBackground.removeAllLottieOnCompositionLoadedListener()
-            mainBackground.addLottieOnCompositionLoadedListener {
-                bottomSheet.state = BottomSheetBehavior.STATE_COLLAPSED
-                rootLayout.setBackgroundColor(ContextCompat.getColor(this, colorSky))
-                detailsPage.setBackgroundColor(ContextCompat.getColor(this, colorDetailsPage))
-                mainTemp.setBackgroundColor(ContextCompat.getColor(this, colorSky))
-                cityName.setBackgroundColor(ContextCompat.getColor(this, colorSky))
-                description.setBackgroundColor(ContextCompat.getColor(this, colorSky))
-                mainPageData.visibility = View.VISIBLE
-            }
+            bottomSheet.state = BottomSheetBehavior.STATE_COLLAPSED
+            rootLayout.setBackgroundColor(ContextCompat.getColor(this, colorSky))
+            detailsPage.setBackgroundColor(ContextCompat.getColor(this, colorDetailsPage))
+            mainTemp.setBackgroundColor(ContextCompat.getColor(this, colorSky))
+            cityName.setBackgroundColor(ContextCompat.getColor(this, colorSky))
+            description.setBackgroundColor(ContextCompat.getColor(this, colorSky))
+            mainPageData.visibility = View.VISIBLE
         } else {
             bottomSheet.state = BottomSheetBehavior.STATE_COLLAPSED
         }
@@ -125,6 +120,7 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
     override fun displayForecastWeatherData(forecastWeather: WeatherForecast.Result) {
         forecastAdapter.setForecastData(forecastWeather.daily.subList(0, 3))
         presenter.addBottomSheetListener(bottomSheet)
+        speechButton.setOnClickListener { checkForPermission(Manifest.permission.RECORD_AUDIO, RECORD_AUDIO_RQ, getString(R.string.record_audio_dialog_message)) }
     }
 
     override fun pauseBackgroundAnimations() {
@@ -178,7 +174,10 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
 
     private fun preLoadBackgrounds() {
         LottieCompositionFactory.fromRawRes(this, R.raw.day_background).addListener { result -> dayBackground = result }
-        LottieCompositionFactory.fromRawRes(this, R.raw.night_background).addListener { result -> nightBackground = result }
+        LottieCompositionFactory.fromRawRes(this, R.raw.night_background).addListener { result ->
+            nightBackground = result
+            checkForPermission(Manifest.permission.ACCESS_FINE_LOCATION, FINE_LOCATION_RQ, getString(R.string.location_dialog_message))
+        }
     }
 
     private fun checkForPermission(permission: String, requestCode: Int, message: String) {
