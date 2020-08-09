@@ -1,13 +1,20 @@
 package com.codecool.swai.presenter
 
+import android.annotation.SuppressLint
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.location.Geocoder
+import android.os.Build
 import android.os.Bundle
 import android.os.Looper
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
+import android.view.LayoutInflater
 import android.view.View
+import android.widget.Button
+import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.core.widget.NestedScrollView
 import com.codecool.swai.R
 import com.codecool.swai.contract.WeatherContract
@@ -151,6 +158,29 @@ class WeatherPresenter(view: WeatherContract.WeatherView) : WeatherContract.Weat
     override fun onDetach() {
         disposable?.dispose()
         this.view = null
+    }
+
+    @SuppressLint("InflateParams")
+    override fun buildPermissionDialog(inflater: LayoutInflater, message: String, permission: String, requestCode: Int): AlertDialog {
+        val dialogForm = inflater.inflate(R.layout.dialog_form, null)
+        val dialog = AlertDialog.Builder(inflater.context)
+            .apply {
+                setCancelable(false)
+                setView(dialogForm)
+                val dialogTitle = dialogForm.findViewById<TextView>(R.id.dialogTitle)
+                val dialogMessage = dialogForm.findViewById<TextView>(R.id.dialogMessage)
+                val positiveButton = dialogForm.findViewById<Button>(R.id.positiveButton)
+                dialogTitle.text = context.getString(R.string.dialog_title)
+                dialogMessage.text = message
+                positiveButton.text = context.getString(R.string.dialog_positive_button)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    positiveButton.backgroundTintList = ColorStateList.valueOf(context.getColor(R.color.colorInformation))
+                }
+                positiveButton.setOnClickListener {
+                    view?.requestPermission(permission, requestCode)
+                }
+            }
+        return dialog.create()
     }
 
     private fun processWeatherData(weather: Weather) {

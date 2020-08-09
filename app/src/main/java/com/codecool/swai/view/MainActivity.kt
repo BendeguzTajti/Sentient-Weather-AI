@@ -43,6 +43,7 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
     private lateinit var bottomSheet: BottomSheetBehavior<NestedScrollView>
     private lateinit var locationProvider: FusedLocationProviderClient
     private lateinit var toast: Toast
+    private lateinit var dialog: AlertDialog
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,6 +68,9 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
     }
 
     override fun onDestroy() {
+        if (this::dialog.isInitialized) {
+            dialog.dismiss()
+        }
         presenter.onDetach()
         speechRecognizer?.destroy()
         super.onDestroy()
@@ -167,6 +171,11 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
         }
     }
 
+    override fun requestPermission(permission: String, requestCode: Int) {
+        dialog.dismiss()
+        ActivityCompat.requestPermissions(this@MainActivity, arrayOf(permission), requestCode)
+    }
+
     private fun preLoadBackgrounds() {
         LottieCompositionFactory.fromRawRes(this, R.raw.day_background).addListener { result -> dayBackground = result }
         LottieCompositionFactory.fromRawRes(this, R.raw.night_background).addListener { result -> nightBackground = result }
@@ -188,21 +197,14 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
     }
 
     private fun showDialog(message: String, permission: String, requestCode: Int) {
-        val builder = AlertDialog.Builder(this)
-        builder.apply {
-            setTitle(getString(R.string.dialog_title))
-            setMessage(message)
-            setPositiveButton(getString(R.string.dialog_positive_button)) { _, _ ->
-                ActivityCompat.requestPermissions(this@MainActivity, arrayOf(permission), requestCode)
-            }
-        }
-        val dialog = builder.create()
+        dialog = presenter.buildPermissionDialog(layoutInflater, message, permission, requestCode)
+        dialog.window?.setBackgroundDrawable(ColorDrawable(ContextCompat.getColor(this, R.color.colorTransparent)))
         dialog.show()
     }
 
     companion object {
-        const val FINE_LOCATION_RQ = 101
-        const val RECORD_AUDIO_RQ = 102
+        private const val FINE_LOCATION_RQ = 101
+        private const val RECORD_AUDIO_RQ = 102
         lateinit var dayBackground: LottieComposition
         lateinit var nightBackground: LottieComposition
     }
