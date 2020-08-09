@@ -17,4 +17,13 @@
     <dimen name="card_elevation">0dp</dimen>
     <dimen name="forecast_logo_size">50dp</dimen>
     <dimen name="forecast_item_padding">10dp</dimen>
+    <dimen name="dialog_margin">30dp</dimen>
+    <dimen name="dialog_padding">20dp</dimen>
+    <dimen name="dialog_title_margin">30dp</dimen>
+    <dimen name="dialog_title_padding">10dp</dimen>
+    <dimen name="dialog_title_size">18sp</dimen>
+    <dimen name="dialog_message_padding">18dp</dimen>
+    <dimen name="dialog_message_size">16sp</dimen>
+    <dimen name="dialog_button_margin">18dp</dimen>
+    <dimen name="information_sign_size">60dp</dimen>
 </resources>
