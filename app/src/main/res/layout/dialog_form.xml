@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/dialog_margin"
+        android:background="@color/colorPrimary"
+        android:padding="@dimen/dialog_padding">
+
+        <TextView
+            android:id="@+id/dialogTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/dialog_title_margin"
+            android:fontFamily="@font/montserrat"
+            android:gravity="center"
+            android:padding="@dimen/dialog_title_padding"
+            android:textSize="@dimen/dialog_title_size"
+            android:textStyle="bold"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Permission Required" />
+
+        <TextView
+            android:id="@+id/dialogMessage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/montserrat"
+            android:padding="@dimen/dialog_message_padding"
+            android:textSize="@dimen/dialog_message_size"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/dialogTitle"
+            tools:text="This app needs to access your location in order to work" />
+
+        <Button
+            android:id="@+id/positiveButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/dialog_button_margin"
+            android:fontFamily="@font/montserrat"
+            android:textColor="@color/colorPrimary"
+            android:textStyle="bold"
+            app:layout_constraintTop_toBottomOf="@+id/dialogMessage"
+            tools:backgroundTint="@color/colorInformation"
+            tools:text="OK" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <com.airbnb.lottie.LottieAnimationView
+        android:id="@+id/informationSign"
+        android:layout_width="@dimen/information_sign_size"
+        android:layout_height="@dimen/information_sign_size"
+        android:layout_centerHorizontal="true"
+        android:scaleType="centerCrop"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:lottie_autoPlay="true"
+        app:lottie_loop="false"
+        app:lottie_rawRes="@raw/information_sign"
+        app:lottie_speed="2" />
+
+</RelativeLayout>
