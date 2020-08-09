@@ -9,4 +9,5 @@
     <color name="colorNightSky">#5F4577</color>
     <color name="colorNightDetails">#361B4A</color>
     <color name="forecastBackground">#05FFFFFF</color>
+    <color name="colorInformation">#FF9E10</color>
 </resources>
