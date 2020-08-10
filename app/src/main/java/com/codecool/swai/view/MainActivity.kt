@@ -53,7 +53,7 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
         recyclerView.adapter = forecastAdapter
         recyclerView.layoutManager = LinearLayoutManager(this)
         speechRecognizer = if (SpeechRecognizer.isRecognitionAvailable(this)) SpeechRecognizer.createSpeechRecognizer(this) else null
-        bottomSheet = BottomSheetBehavior.from(detailsPage)
+        bottomSheet = BottomSheetBehavior.from(bottomSheetPage)
         locationProvider = LocationServices.getFusedLocationProviderClient(this)
         geoCoder = if (Geocoder.isPresent()) Geocoder(this, Locale.getDefault()) else null
     }

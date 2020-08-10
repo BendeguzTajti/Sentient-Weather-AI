@@ -88,66 +88,88 @@
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.core.widget.NestedScrollView
-        android:id="@+id/detailsPage"
+        android:id="@+id/bottomSheetPage"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:minHeight="@dimen/nested_scrollview_min_height"
         app:behavior_hideable="false"
         app:behavior_peekHeight="@dimen/bottomsheet_peek_height"
         app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
-        app:layout_insetEdge="bottom"
-        tools:background="@color/colorDayDetails">
+        app:layout_insetEdge="bottom">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <com.airbnb.lottie.LottieAnimationView
-                android:id="@+id/swipeIndicator"
-                android:layout_width="@dimen/bottomsheet_peek_height"
-                android:layout_height="@dimen/bottomsheet_peek_height"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:lottie_autoPlay="true"
-                app:lottie_loop="true"
-                app:lottie_rawRes="@raw/swipe_up" />
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recyclerView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="@dimen/recyclerview_margin"
-                android:background="@color/forecastBackground"
-                android:overScrollMode="never"
-                app:layout_constraintBottom_toTopOf="@+id/speechButtonContainer"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/swipeIndicator"
-                tools:itemCount="3"
-                tools:listitem="@layout/forecast_item" />
+            android:layout_height="match_parent"
+            tools:background="@color/forecastBackground">
 
             <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/speechButtonContainer"
-                android:layout_width="@dimen/circle_button_size"
-                android:layout_height="@dimen/circle_button_size"
-                android:layout_marginTop="@dimen/speech_button_margin"
-                android:layout_marginBottom="@dimen/speech_button_margin"
-                android:background="@drawable/circle_button"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/recyclerView">
+                android:id="@+id/bottomSheetPeek"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/bottomsheet_peek_height"
+                android:background="@color/colorTransparent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:background="@color/colorDayDetails">
 
-                <ImageButton
-                    android:id="@+id/speechButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="?attr/selectableItemBackground"
-                    android:padding="@dimen/speech_button_padding"
+                <com.airbnb.lottie.LottieAnimationView
+                    android:id="@+id/swipeIndicator"
+                    android:layout_width="@dimen/bottomsheet_peek_height"
+                    android:layout_height="@dimen/bottomsheet_peek_height"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
                     android:scaleType="centerCrop"
-                    android:src="@drawable/ic_mic"
-                    tools:ignore="ContentDescription" />
+                    app:lottie_autoPlay="true"
+                    app:lottie_loop="true"
+                    app:lottie_rawRes="@raw/swipe_up" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/detailsPage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingBottom="20dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/bottomSheetPeek"
+                tools:background="@color/colorDayDetails">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recyclerView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="@dimen/recyclerview_margin"
+                    android:background="@color/forecastBackground"
+                    android:overScrollMode="never"
+                    app:layout_constraintBottom_toTopOf="@+id/speechButtonContainer"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:itemCount="3"
+                    tools:listitem="@layout/forecast_item" />
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/speechButtonContainer"
+                    android:layout_width="@dimen/circle_button_size"
+                    android:layout_height="@dimen/circle_button_size"
+                    android:layout_marginTop="@dimen/speech_button_margin"
+                    android:layout_marginBottom="@dimen/speech_button_margin"
+                    android:background="@drawable/circle_button"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toBottomOf="parent">
+
+                    <ImageButton
+                        android:id="@+id/speechButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="?attr/selectableItemBackground"
+                        android:padding="@dimen/speech_button_padding"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/ic_mic"
+                        tools:ignore="ContentDescription" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
