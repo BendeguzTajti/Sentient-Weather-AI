@@ -164,6 +164,7 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
             is ApiException -> Log.d(".displayError", "displayError: API ERROR")
             is UnknownHostException -> Log.d(".displayError", "displayError: INTERNET ERROR")
             is HttpException -> Log.d(".displayError", "displayError: Http ERROR")
+            else -> Log.d(".displayError", "$exception")
         }
     }
 
