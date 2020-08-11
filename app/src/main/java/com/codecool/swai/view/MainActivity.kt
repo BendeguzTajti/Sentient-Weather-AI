@@ -101,14 +101,16 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
             mainBackground.setComposition(background)
             bottomSheet.state = BottomSheetBehavior.STATE_COLLAPSED
             rootLayout.setBackgroundColor(ContextCompat.getColor(this, colorSky))
-            detailsPage.setBackgroundColor(ContextCompat.getColor(this, colorDetailsPage))
             mainTemp.setBackgroundColor(ContextCompat.getColor(this, colorSky))
             cityName.setBackgroundColor(ContextCompat.getColor(this, colorSky))
             description.setBackgroundColor(ContextCompat.getColor(this, colorSky))
+            mainWeatherIcon.setBackgroundColor(ContextCompat.getColor(this, colorSky))
+            detailsPage.setBackgroundColor(ContextCompat.getColor(this, colorDetailsPage))
             mainPageData.visibility = View.VISIBLE
         } else {
             bottomSheet.state = BottomSheetBehavior.STATE_COLLAPSED
         }
+        resumeBackgroundAnimations()
     }
 
     override fun displayCurrentWeatherData(currentWeather: WeatherCurrent.Result) {

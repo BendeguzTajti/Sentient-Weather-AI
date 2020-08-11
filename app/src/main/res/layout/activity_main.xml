@@ -98,26 +98,22 @@
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            tools:background="@color/forecastBackground">
+            android:layout_height="match_parent">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/bottomSheetPeek"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/bottomsheet_peek_height"
                 android:background="@color/colorTransparent"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:background="@color/colorDayDetails">
+                app:layout_constraintTop_toTopOf="parent">
 
                 <com.airbnb.lottie.LottieAnimationView
                     android:id="@+id/swipeIndicator"
-                    android:layout_width="@dimen/bottomsheet_peek_height"
-                    android:layout_height="@dimen/bottomsheet_peek_height"
+                    android:layout_width="@dimen/swipe_indicator_size"
+                    android:layout_height="@dimen/swipe_indicator_size"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintRight_toRightOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    android:scaleType="centerCrop"
                     app:lottie_autoPlay="true"
                     app:lottie_loop="true"
                     app:lottie_rawRes="@raw/swipe_up" />
@@ -128,7 +124,7 @@
                 android:id="@+id/detailsPage"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingBottom="20dp"
+                android:paddingBottom="@dimen/details_page_padding"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/bottomSheetPeek"
                 tools:background="@color/colorDayDetails">
