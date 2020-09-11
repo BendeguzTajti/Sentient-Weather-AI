@@ -41,11 +41,11 @@ class WeatherCurrent {
     data class Temperature(val temp: Double) {
 
         fun getTempCelsius(): String {
-            return (temp - 273.15).roundToInt().toString() + "°C"
+            return "${(temp - 273.15).roundToInt()}°C"
         }
 
         fun getTempFahrenheit(): String {
-            return (((temp - 273.15) * 9 / 5) + 32).roundToInt().toString() + "°F"
+            return "${(((temp - 273.15) * 9 / 5) + 32).roundToInt()}°F"
         }
     }
 }

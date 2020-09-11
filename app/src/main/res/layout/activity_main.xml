@@ -8,6 +8,80 @@
     tools:context=".view.MainActivity">
 
     <com.airbnb.lottie.LottieAnimationView
+        android:id="@+id/loadingScreen"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:lottie_autoPlay="true"
+        app:lottie_enableMergePathsForKitKatAndAbove="true"
+        app:lottie_loop="true"
+        app:lottie_rawRes="@raw/loading" />
+
+    <RelativeLayout
+        android:id="@+id/errorContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:visibility="gone">
+
+        <com.airbnb.lottie.LottieAnimationView
+            android:id="@+id/errorImage"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/error_image_height"
+            android:scaleType="centerCrop"
+            app:lottie_autoPlay="true"
+            app:lottie_loop="true"
+            app:lottie_rawRes="@raw/internet_error" />
+
+        <TextView
+            android:id="@+id/errorTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/errorImage"
+            android:layout_centerHorizontal="true"
+            android:fontFamily="@font/montserrat"
+            android:padding="@dimen/error_text_padding"
+            android:text="@string/internet_error_title"
+            android:textSize="@dimen/error_title_size"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/errorMessage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/errorTitle"
+            android:layout_centerHorizontal="true"
+            android:fontFamily="@font/montserrat"
+            android:gravity="center"
+            android:padding="@dimen/error_text_padding"
+            android:text="@string/internet_error_message"
+            android:textSize="@dimen/error_message_size" />
+
+        <TextView
+            android:id="@+id/retryButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/errorMessage"
+            android:layout_centerHorizontal="true"
+            android:clickable="true"
+            android:focusable="true"
+            android:fontFamily="@font/montserrat"
+            android:padding="@dimen/retry_button_padding"
+            android:text="@string/retry_button_text"
+            android:textColor="@color/colorRetryButton"
+            android:textStyle="bold" />
+
+        <ProgressBar
+            android:id="@+id/retryLoading"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignTop="@+id/retryButton"
+            android:layout_alignBottom="@+id/retryButton"
+            android:layout_centerHorizontal="true"
+            android:visibility="invisible" />
+
+    </RelativeLayout>
+
+    <com.airbnb.lottie.LottieAnimationView
         android:id="@+id/mainBackground"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -56,10 +130,12 @@
 
         <TextView
             android:id="@+id/cityName"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/main_page_margin_default"
             android:layout_marginLeft="@dimen/main_page_margin_default"
+            android:layout_marginEnd="@dimen/main_page_margin_default"
+            android:layout_marginRight="@dimen/main_page_margin_default"
             android:fontFamily="@font/montserrat"
             android:padding="@dimen/text_padding_default"
             android:textColor="@color/colorPrimary"
@@ -75,12 +151,13 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/main_page_margin_default"
             android:layout_marginLeft="@dimen/main_page_margin_default"
-            android:layout_marginTop="@dimen/description_margin_top"
+            android:layout_marginEnd="@dimen/main_page_margin_default"
+            android:layout_marginRight="@dimen/main_page_margin_default"
             android:fontFamily="@font/montserrat"
             android:padding="@dimen/text_padding_default"
             android:textColor="@color/colorPrimary"
             android:textSize="@dimen/description_text_size"
-            android:textStyle="bold"
+            android:textStyle="normal"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/cityName"
             tools:text="Cloudy" />
@@ -91,6 +168,7 @@
         android:id="@+id/bottomSheetPage"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        app:behavior_draggable="false"
         app:behavior_hideable="false"
         app:behavior_peekHeight="@dimen/bottomsheet_peek_height"
         app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
@@ -134,7 +212,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_margin="@dimen/recyclerview_margin"
-                    android:background="@color/forecastBackground"
+                    android:background="@drawable/rounded_corners"
                     android:overScrollMode="never"
                     app:layout_constraintBottom_toTopOf="@+id/speechButtonContainer"
                     app:layout_constraintLeft_toLeftOf="parent"
@@ -149,11 +227,13 @@
                     android:layout_height="@dimen/circle_button_size"
                     android:layout_marginTop="@dimen/speech_button_margin"
                     android:layout_marginBottom="@dimen/speech_button_margin"
-                    android:background="@drawable/circle_button"
+                    android:background="@drawable/circle_speech_button"
+                    android:visibility="gone"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintRight_toRightOf="parent"
-                    app:layout_constraintTop_toBottomOf="parent">
+                    app:layout_constraintTop_toBottomOf="parent"
+                    tools:visibility="visible">
 
                     <ImageButton
                         android:id="@+id/speechButton"

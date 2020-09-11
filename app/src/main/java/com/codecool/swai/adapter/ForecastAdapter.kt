@@ -18,8 +18,7 @@ class ForecastAdapter : RecyclerView.Adapter<ForecastAdapter.ViewHolder>() {
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val context: Context = itemView.context
         val forecastIcon: LottieAnimationView = itemView.forecastWeatherLogo
-        val forecastDay: TextView = itemView.forecastDay
-        val forecastWeatherType: TextView = itemView.forecastWeatherType
+        val forecastDayAndType: TextView = itemView.forecastDayAndType
         val forecastMinMaxTemp: TextView = itemView.forecastMinMaxTemp
     }
 
@@ -31,10 +30,9 @@ class ForecastAdapter : RecyclerView.Adapter<ForecastAdapter.ViewHolder>() {
     @ExperimentalStdlibApi
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val currentForecast = forecastData[position]
-        holder.forecastIcon.setAnimation(currentForecast.weather[0].getWeatherIcon())
-        holder.forecastIcon.progress = 0.09f
-        holder.forecastDay.text = currentForecast.getDay()
-        holder.forecastWeatherType.text = holder.context.getString(currentForecast.weather[0].getWeatherType())
+        val dayAndWeatherType = currentForecast.getDay() + "  •  " + holder.context.getString(currentForecast.weather[0].getWeatherType())
+        holder.forecastIcon.setAnimation(currentForecast.weather.first().getWeatherIcon())
+        holder.forecastDayAndType.text = dayAndWeatherType
         holder.forecastMinMaxTemp.text = currentForecast.temp.getMinMaxTempCelsius()
     }
 

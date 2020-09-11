@@ -11,7 +11,7 @@ class WeatherForecast {
 
         @ExperimentalStdlibApi
         fun getDay(): String {
-            val sdf = SimpleDateFormat("EEEE", Locale.getDefault())
+            val sdf = SimpleDateFormat("EEE", Locale.getDefault())
             val date = Date(dt * 1000)
             return sdf.format(date).capitalize(Locale.getDefault())
         }

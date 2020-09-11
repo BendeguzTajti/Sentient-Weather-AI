@@ -4,7 +4,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/forecastBackground"
     android:orientation="horizontal"
     android:weightSum="1"
     tools:background="#222">
@@ -15,31 +14,21 @@
         android:layout_height="@dimen/forecast_logo_size"
         android:layout_gravity="center"
         android:layout_weight=".15"
+        app:lottie_progress="0.09"
         android:padding="@dimen/forecast_item_padding"
         app:lottie_autoPlay="false"
         app:lottie_loop="false" />
 
     <TextView
-        android:id="@+id/forecastDay"
+        android:id="@+id/forecastDayAndType"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_weight=".3"
+        android:layout_weight=".6"
         android:fontFamily="@font/montserrat"
         android:gravity="center_vertical"
         android:padding="@dimen/forecast_item_padding"
         android:textColor="@color/colorPrimary"
-        tools:text="Monday" />
-
-    <TextView
-        android:id="@+id/forecastWeatherType"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight=".3"
-        android:fontFamily="@font/montserrat"
-        android:gravity="center_vertical"
-        android:padding="@dimen/forecast_item_padding"
-        android:textColor="@color/colorPrimary"
-        tools:text="Rain" />
+        tools:text="Monday   •   Clear" />
 
     <TextView
         android:id="@+id/forecastMinMaxTemp"

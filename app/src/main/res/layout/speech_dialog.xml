@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:background="@color/colorPrimary">
+
+    <TextView
+        android:id="@+id/speechDialogTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/montserrat"
+        android:gravity="center"
+        android:padding="@dimen/speech_dialog_padding"
+        android:text="@string/speech_dialog_title"
+        android:textColor="@color/colorSpeechDialogText"
+        android:textSize="@dimen/dialog_title_size"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@+id/robot"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.airbnb.lottie.LottieAnimationView
+        android:id="@+id/robot"
+        android:layout_width="@dimen/robot_size"
+        android:layout_height="@dimen/robot_size"
+        android:scaleType="centerCrop"
+        app:layout_constraintBottom_toTopOf="@+id/speechCancelButton"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/speechDialogTitle"
+        app:lottie_autoPlay="true"
+        app:lottie_loop="true"
+        app:lottie_rawRes="@raw/robot" />
+
+    <ImageButton
+        android:id="@+id/speechCancelButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/cancel_button_margin_top"
+        android:layout_marginBottom="@dimen/cancel_button_margin_bottom"
+        android:background="@drawable/circle_cancel_button"
+        android:padding="@dimen/cancel_button_padding"
+        android:scaleType="centerCrop"
+        android:src="@drawable/ic_close_24"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/robot"
+        tools:ignore="ContentDescription" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

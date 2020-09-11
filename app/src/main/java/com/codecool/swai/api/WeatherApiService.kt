@@ -17,11 +17,6 @@ interface WeatherApiService {
                                     @Query("APPID") APPID: String,
                                     @Query("lang") lang: String): Single<WeatherCurrent.Result>
 
-    @GET("weather")
-    fun getCurrentWeatherByCity(@Query("q") q: String,
-                                    @Query("APPID") APPID: String,
-                                    @Query("lang") lang: String): Single<WeatherCurrent.Result>
-
     @GET("onecall")
     fun getWeatherForecast(@Query("lat") lat: Double,
                            @Query("lon") lon: Double,

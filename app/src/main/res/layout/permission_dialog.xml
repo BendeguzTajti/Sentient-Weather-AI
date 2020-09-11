@@ -14,7 +14,7 @@
         android:padding="@dimen/dialog_padding">
 
         <TextView
-            android:id="@+id/dialogTitle"
+            android:id="@+id/permissionDialogTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/dialog_title_margin"
@@ -29,15 +29,16 @@
             tools:text="Permission Required" />
 
         <TextView
-            android:id="@+id/dialogMessage"
+            android:id="@+id/permissionDialogMessage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="@font/montserrat"
+            android:gravity="center"
             android:padding="@dimen/dialog_message_padding"
             android:textSize="@dimen/dialog_message_size"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/dialogTitle"
+            app:layout_constraintTop_toBottomOf="@+id/permissionDialogTitle"
             tools:text="This app needs to access your location in order to work" />
 
         <Button
@@ -48,7 +49,7 @@
             android:fontFamily="@font/montserrat"
             android:textColor="@color/colorPrimary"
             android:textStyle="bold"
-            app:layout_constraintTop_toBottomOf="@+id/dialogMessage"
+            app:layout_constraintTop_toBottomOf="@+id/permissionDialogMessage"
             tools:backgroundTint="@color/colorInformation"
             tools:text="OK" />
 
