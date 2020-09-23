@@ -6,13 +6,13 @@ import io.reactivex.Single
 import io.reactivex.functions.BiFunction
 import java.util.*
 
-class DataManager {
+class DataManager : WeatherManager {
 
     private val weatherApiService by lazy {
         WeatherApiService.create()
     }
 
-    fun getWeatherDataByCoordinates(latitude: Double, longitude: Double): Single<Weather> {
+    override fun getWeatherDataByCoordinates(latitude: Double, longitude: Double): Single<Weather> {
         val currentWeather = weatherApiService.getCurrentWeatherByLocation(latitude, longitude, API_KEY, Locale.getDefault().language)
         val forecastWeather = weatherApiService.getWeatherForecast(latitude, longitude, DATA_TO_EXCLUDE, API_KEY, Locale.getDefault().language)
         return Single.zip(currentWeather, forecastWeather, BiFunction { weather, forecast ->

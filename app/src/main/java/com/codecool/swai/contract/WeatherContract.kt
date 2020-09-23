@@ -16,7 +16,7 @@ interface WeatherContract {
     interface WeatherView: BaseContract.BaseView {
         fun requestPermission(permission: String, requestCode: Int)
         fun checkLocationPermission(): Boolean
-        fun createMainPageTheme(weatherIcon: Int, background: LottieComposition, colorSky: Int, colorDetailsPage: Int)
+        fun createMainPageTheme(weatherIcon: Int, background: LottieComposition?, colorSky: Int, colorDetailsPage: Int)
         fun displayCurrentWeatherData(city: String, currentWeather: WeatherCurrent.Result)
         fun displayForecastWeatherData(forecastWeather: WeatherForecast.Result)
         fun pauseBackgroundAnimations()

@@ -102,11 +102,11 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
         return false
     }
 
-    override fun createMainPageTheme(weatherIcon: Int, background: LottieComposition, colorSky: Int, colorDetailsPage: Int) {
+    override fun createMainPageTheme(weatherIcon: Int, background: LottieComposition?, colorSky: Int, colorDetailsPage: Int) {
         mainWeatherIcon.setAnimation(weatherIcon)
         val currentRootColor = rootLayout.background as ColorDrawable?
         if (currentRootColor?.color != ContextCompat.getColor(this, colorSky)) {
-            mainBackground.setComposition(background)
+            mainBackground.setComposition(background!!)
             rootLayout.setBackgroundColor(ContextCompat.getColor(this, colorSky))
             mainTemp.setBackgroundColor(ContextCompat.getColor(this, colorSky))
             description.setBackgroundColor(ContextCompat.getColor(this, colorSky))

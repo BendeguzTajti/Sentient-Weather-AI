@@ -23,8 +23,8 @@ class BaseApp : Application() {
     }
 
     companion object {
-        lateinit var dayBackground: LottieComposition
-        lateinit var nightBackground: LottieComposition
+        var dayBackground: LottieComposition? = null
+        var nightBackground: LottieComposition? = null
     }
 
 }

@@ -21,10 +21,10 @@ import androidx.core.widget.NestedScrollView
 import com.codecool.swai.R
 import com.codecool.swai.contract.BaseContract
 import com.codecool.swai.contract.WeatherContract
-import com.codecool.swai.model.DataManager
 import com.codecool.swai.model.Weather
 import com.codecool.swai.BaseApp.Companion.dayBackground
 import com.codecool.swai.BaseApp.Companion.nightBackground
+import com.codecool.swai.model.WeatherManager
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.Status
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -41,7 +41,7 @@ import java.net.HttpURLConnection
 import java.util.*
 import kotlin.collections.ArrayList
 
-class WeatherPresenter(private val dataManager: DataManager) : WeatherContract.WeatherPresenter {
+class WeatherPresenter(private val dataManager: WeatherManager) : WeatherContract.WeatherPresenter {
 
     private var view: WeatherContract.WeatherView? = null
     private var disposable: Disposable? = null
@@ -255,7 +255,7 @@ class WeatherPresenter(private val dataManager: DataManager) : WeatherContract.W
         return Single.just(emptyList())
     }
 
-    private fun getWeatherDataBySpeech(cityName: String, latitude: Double, longitude: Double) {
+    fun getWeatherDataBySpeech(cityName: String, latitude: Double, longitude: Double) {
         disposable = dataManager.getWeatherDataByCoordinates(latitude, longitude)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
