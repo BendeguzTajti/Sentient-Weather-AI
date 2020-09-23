@@ -1,6 +1,5 @@
 package com.codecool.swai.model
 
-import com.codecool.swai.BuildConfig
 import com.codecool.swai.api.WeatherApiService
 import io.reactivex.Single
 import io.reactivex.functions.BiFunction
@@ -21,7 +20,7 @@ class DataManager : WeatherManager {
     }
 
     companion object {
-        private const val API_KEY = BuildConfig.API_KEY
+        private const val API_KEY = "24b031540acbc5b0a68d9c8f4692734d"
         private const val DATA_TO_EXCLUDE = "current,minutely,hourly"
     }
 }
