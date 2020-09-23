@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SWAI</string>
+    <string name="type_clear">Tiszta</string>
+    <string name="type_clouds">Felhős</string>
+    <string name="type_mist">Köd</string>
+    <string name="type_snow">Hó</string>
+    <string name="type_rain">Eső</string>
+    <string name="type_drizzle">Zápor</string>
+    <string name="type_thunder">Zivatar</string>
+    <string name="no_results">Nincs találat!</string>
+    <string name="no_connection_message">A kapcsolat megszakadt!</string>
+    <string name="permission_dialog_positive_button">Rendben</string>
+    <string name="speech_dialog_title">Melyik várost vagy helyszínt keressem?</string>
+    <string name="speech_no_match">Sajnos nem értettem amit mondtál</string>
+    <string name="internet_error_title">Kapcsolódás az internethez</string>
+    <string name="internet_error_message">Offline állapotban vagy; ellenőrizd az internetkapcsolatot.</string>
+    <string name="retry_button_text">Újrapróbálkozás</string>
+    <string name="server_error_message">A szerver jelenleg túlterhelt. \\nKérlek próbáld meg később!</string>
+    <string name="permission_dialog_title">Engedély szükséges</string>
+    <string name="location_dialog_message">Az alkalmazásnak hozzá kell férnie a készülék GPS adataihoz, hogy működjön.</string>
+    <string name="record_audio_dialog_message">A hangfelismerő funkciónak hozzá kell férnie a készülék mikrofonjához, hogy működjön.</string>
+</resources>

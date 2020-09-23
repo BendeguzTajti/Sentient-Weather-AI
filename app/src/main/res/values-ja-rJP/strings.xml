@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SWAI</string>
+    <string name="type_thunder">雷雨</string>
+    <string name="type_clear">晴れ</string>
+    <string name="type_clouds">曇り</string>
+    <string name="type_mist">靄</string>
+    <string name="type_rain">雨</string>
+    <string name="type_drizzle">小雨</string>
+    <string name="type_snow">雪</string>
+    <string name="permission_dialog_positive_button">" はい "</string>
+    <string name="internet_error_title">インターネットに接続してください</string>
+    <string name="retry_button_text">再試行</string>
+    <string name="internet_error_message">現在オフラインです。接続を確認してください。</string>
+    <string name="no_connection_message">接続が失われました。</string>
+    <string name="speech_dialog_title">どんな都市か場所が探すべきですか?</string>
+    <string name="no_results">結果が見つかりません。</string>
+    <string name="speech_no_match">理解できませんでした。</string>
+    <string name="server_error_message">現在、サーバーは過負荷です。\\nあとでもう一度試してみてください。</string>
+</resources>
