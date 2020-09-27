@@ -37,6 +37,11 @@ import java.util.*
 
 class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
 
+    companion object {
+        private const val FINE_LOCATION_RQ = 101
+        private const val RECORD_AUDIO_RQ = 102
+    }
+
     private val presenter: WeatherPresenter by inject()
     private val forecastAdapter = ForecastAdapter()
     private var speechRecognizer: SpeechRecognizer? = null
@@ -54,9 +59,13 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
         presenter.onAttach(this)
         recyclerView.adapter = forecastAdapter
         recyclerView.layoutManager = LinearLayoutManager(this)
-        speechRecognizer = if (SpeechRecognizer.isRecognitionAvailable(this)) SpeechRecognizer.createSpeechRecognizer(this) else null
         bottomSheet = BottomSheetBehavior.from(bottomSheetPage)
+    }
+
+    override fun onStart() {
+        super.onStart()
         locationProvider = LocationServices.getFusedLocationProviderClient(this)
+        speechRecognizer = if (SpeechRecognizer.isRecognitionAvailable(this)) SpeechRecognizer.createSpeechRecognizer(this) else null
         geoCoder = if (Geocoder.isPresent()) Geocoder(this, Locale.getDefault()) else null
         if(speechRecognizer != null && geoCoder != null) speechButtonContainer.visibility = View.VISIBLE
         checkForPermission(Manifest.permission.ACCESS_FINE_LOCATION, FINE_LOCATION_RQ, getString(R.string.location_dialog_message))
@@ -81,7 +90,7 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
             }
         } else {
             when(requestCode) {
-                FINE_LOCATION_RQ -> presenter.getUserCoordinates(locationProvider)
+                FINE_LOCATION_RQ -> presenter.getWeatherDataByUserLocation(locationProvider)
                 RECORD_AUDIO_RQ -> {
                     cancelToast()
                     presenter.startSpeechRecognition(layoutInflater, speechRecognizer!!, application.packageName, geoCoder!!)
@@ -95,27 +104,22 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
         ActivityCompat.requestPermissions(this@MainActivity, arrayOf(permission), requestCode)
     }
 
-    override fun checkLocationPermission(): Boolean {
-        if (ContextCompat.checkSelfPermission(applicationContext, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            return true
-        }
-        return false
-    }
-
     override fun createMainPageTheme(weatherIcon: Int, background: LottieComposition?, colorSky: Int, colorDetailsPage: Int) {
         mainWeatherIcon.setAnimation(weatherIcon)
         val currentRootColor = rootLayout.background as ColorDrawable?
         if (currentRootColor?.color != ContextCompat.getColor(this, colorSky)) {
             mainBackground.setComposition(background!!)
-            rootLayout.setBackgroundColor(ContextCompat.getColor(this, colorSky))
+            mainBackground.setBackgroundColor(ContextCompat.getColor(this, colorSky))
             mainTemp.setBackgroundColor(ContextCompat.getColor(this, colorSky))
             description.setBackgroundColor(ContextCompat.getColor(this, colorSky))
             mainWeatherIcon.setBackgroundColor(ContextCompat.getColor(this, colorSky))
-            detailsPage.setBackgroundColor(ContextCompat.getColor(this, colorDetailsPage))
+            rootLayout.setBackgroundColor(ContextCompat.getColor(this, colorDetailsPage))
         }
         bottomSheet.state = BottomSheetBehavior.STATE_COLLAPSED
         mainPageData.visibility = View.VISIBLE
-        resumeBackgroundAnimations()
+        if (mainBackground.progress < 0.99f) {
+            mainBackground.resumeAnimation()
+        }
     }
 
     @ExperimentalStdlibApi
@@ -126,38 +130,10 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
     }
 
     override fun displayForecastWeatherData(forecastWeather: WeatherForecast.Result) {
-        presenter.addBottomSheetListener(bottomSheet)
+        addBottomSheetListener()
         speechButton.setOnClickListener { checkForPermission(Manifest.permission.RECORD_AUDIO, RECORD_AUDIO_RQ, getString(R.string.record_audio_dialog_message)) }
         forecastAdapter.setForecastData(forecastWeather.daily.subList(0, 3))
         bottomSheet.isDraggable = true
-    }
-
-    override fun pauseBackgroundAnimations() {
-        if (mainBackground.isAnimating) {
-            mainBackground.pauseAnimation()
-        }
-        mainWeatherIcon.pauseAnimation()
-    }
-
-    override fun resumeBackgroundAnimations() {
-        if (mainBackground.progress < 0.99f) {
-            mainBackground.resumeAnimation()
-        }
-        mainWeatherIcon.resumeAnimation()
-    }
-
-    override fun hideSwipeIndicator() {
-        swipeIndicator.visibility = View.INVISIBLE
-    }
-
-    override fun showSwipeIndicator() {
-        swipeIndicator.visibility = View.VISIBLE
-    }
-
-    override fun changeSwipeIndicatorAnimation(newAnimation: Int) {
-        swipeIndicator.setAnimation(newAnimation)
-        swipeIndicator.progress = 0.0f
-        swipeIndicator.playAnimation()
     }
 
     override fun showToast(message: Int, toastLength: Int) {
@@ -203,7 +179,7 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
                 retryButton.setOnClickListener {
                     retryButton.visibility = View.INVISIBLE
                     retryLoading.visibility = View.VISIBLE
-                    presenter.getUserCoordinates(locationProvider)
+                    presenter.getWeatherDataByUserLocation(locationProvider)
                 }
             }
             else -> Log.d(".displayError", "$exception")
@@ -215,7 +191,7 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
             when {
                 ContextCompat.checkSelfPermission(applicationContext, permission) == PackageManager.PERMISSION_GRANTED -> {
                     when(permission) {
-                        Manifest.permission.ACCESS_FINE_LOCATION -> presenter.getUserCoordinates(locationProvider)
+                        Manifest.permission.ACCESS_FINE_LOCATION -> presenter.getWeatherDataByUserLocation(locationProvider)
                         Manifest.permission.RECORD_AUDIO -> {
                             cancelToast()
                             presenter.startSpeechRecognition(layoutInflater, speechRecognizer!!, application.packageName, geoCoder!!)
@@ -228,14 +204,47 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
         }
     }
 
+    private fun addBottomSheetListener() {
+        bottomSheet.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
+
+            override fun onSlide(bottomSheet: View, slideOffset: Float) {
+                if (slideOffset < 1.0f && slideOffset > 0.0f) {
+                    swipeIndicator.visibility = View.INVISIBLE
+                }
+            }
+
+            override fun onStateChanged(bottomSheet: View, newState: Int) {
+                when(newState) {
+                    BottomSheetBehavior.STATE_EXPANDED -> {
+                        swipeIndicator.setAnimation(R.raw.swipe_down)
+                        swipeIndicator.progress = 0.0f
+                        swipeIndicator.playAnimation()
+                    }
+                    BottomSheetBehavior.STATE_DRAGGING -> {
+                        if (mainBackground.isAnimating) {
+                            mainBackground.pauseAnimation()
+                        }
+                        mainWeatherIcon.pauseAnimation()
+                    }
+                    BottomSheetBehavior.STATE_COLLAPSED -> {
+                        if (mainBackground.progress < 0.99f) {
+                            mainBackground.resumeAnimation()
+                        }
+                        mainWeatherIcon.resumeAnimation()
+                        swipeIndicator.setAnimation(R.raw.swipe_up)
+                        swipeIndicator.progress = 0.0f
+                        swipeIndicator.playAnimation()
+                    } else -> {}
+                }
+                swipeIndicator.visibility = View.VISIBLE
+            }
+
+        })
+    }
+
     private fun cancelToast() {
         if (this::toast.isInitialized) {
             toast.cancel()
         }
-    }
-
-    companion object {
-        private const val FINE_LOCATION_RQ = 101
-        private const val RECORD_AUDIO_RQ = 102
     }
 }

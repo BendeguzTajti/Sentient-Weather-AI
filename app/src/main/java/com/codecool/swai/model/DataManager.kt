@@ -7,6 +7,11 @@ import java.util.*
 
 class DataManager : WeatherManager {
 
+    companion object {
+        private const val API_KEY = "24b031540acbc5b0a68d9c8f4692734d"
+        private const val DATA_TO_EXCLUDE = "current,minutely,hourly"
+    }
+
     private val weatherApiService by lazy {
         WeatherApiService.create()
     }
@@ -17,10 +22,5 @@ class DataManager : WeatherManager {
         return Single.zip(currentWeather, forecastWeather, BiFunction { weather, forecast ->
             Weather(weather, forecast)
         })
-    }
-
-    companion object {
-        private const val API_KEY = "24b031540acbc5b0a68d9c8f4692734d"
-        private const val DATA_TO_EXCLUDE = "current,minutely,hourly"
     }
 }

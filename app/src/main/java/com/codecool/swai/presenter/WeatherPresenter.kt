@@ -6,20 +6,17 @@ import android.content.res.ColorStateList
 import android.location.Geocoder
 import android.os.Build
 import android.os.Bundle
-import android.os.Looper
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
+import android.util.Log
 import android.view.LayoutInflater
-import android.view.View
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.core.widget.NestedScrollView
 import com.codecool.swai.R
-import com.codecool.swai.contract.BaseContract
 import com.codecool.swai.contract.WeatherContract
 import com.codecool.swai.model.Weather
 import com.codecool.swai.BaseApp.Companion.dayBackground
@@ -27,11 +24,7 @@ import com.codecool.swai.BaseApp.Companion.nightBackground
 import com.codecool.swai.model.WeatherManager
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.Status
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationCallback
-import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationResult
-import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.gms.location.*
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
@@ -69,63 +62,32 @@ class WeatherPresenter(private val dataManager: WeatherManager) : WeatherContrac
         view?.showDialog(dialog)
     }
 
-    override fun getUserCoordinates(locationProvider: FusedLocationProviderClient) {
-        val locationRequest = LocationRequest()
-        locationRequest.interval = 10000
-        locationRequest.fastestInterval = 3000
-        locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-        if (view?.checkLocationPermission() == true) {
-            locationProvider.requestLocationUpdates(locationRequest, object : LocationCallback() {
-                override fun onLocationResult(locationResult: LocationResult?) {
-                    super.onLocationResult(locationResult)
-                    locationProvider.removeLocationUpdates(this)
-                    if (locationResult != null && locationResult.locations.size > 0) {
-                        val latestLocationIndex = locationResult.locations.size - 1
-                        val latitude = locationResult.locations[latestLocationIndex].latitude
-                        val longitude = locationResult.locations[latestLocationIndex].longitude
-                        getWeatherData(latitude, longitude)
-                    }
-                }
-            }, Looper.getMainLooper())
+    @SuppressLint("MissingPermission")
+    override fun getWeatherDataByUserLocation(locationProvider: FusedLocationProviderClient) {
+        val locationRequest = LocationRequest.create().apply {
+            numUpdates = 1
+            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+            interval = 10000
+            fastestInterval = 3000
         }
-    }
-
-    override fun getWeatherData(latitude: Double, longitude: Double) {
-        disposable = dataManager.getWeatherDataByCoordinates(latitude, longitude)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(
-                { weather ->
-                    view?.hideError()
-                    view?.hideLoading()
-                    processWeatherData(weather.current.getLocationName(), weather) },
-                { error ->
-                    view?.hideLoading()
-                    view?.displayError(error) })
-    }
-
-    override fun addBottomSheetListener(bottomSheet: BottomSheetBehavior<NestedScrollView>) {
-        bottomSheet.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
-
-            override fun onSlide(bottomSheet: View, slideOffset: Float) {
-                if (slideOffset < 1.0f && slideOffset > 0.0f) {
-                    view?.hideSwipeIndicator()
-                }
+        locationProvider.requestLocationUpdates(locationRequest, object : LocationCallback() {
+            override fun onLocationResult(locationResult: LocationResult?) {
+                super.onLocationResult(locationResult)
+                locationResult?.let {
+                    val lastLocation = it.lastLocation
+                    val latitude = lastLocation.latitude
+                    val longitude = lastLocation.longitude
+                    getWeatherData(null, latitude, longitude)
+                } ?: Log.d("WeatherPresenter", "onLocationAvailability: An error occurred with the location. Please add error handling here.")
             }
 
-            override fun onStateChanged(bottomSheet: View, newState: Int) {
-                when(newState) {
-                    BottomSheetBehavior.STATE_EXPANDED -> view?.changeSwipeIndicatorAnimation(R.raw.swipe_down)
-                    BottomSheetBehavior.STATE_DRAGGING -> view?.pauseBackgroundAnimations()
-                    BottomSheetBehavior.STATE_COLLAPSED -> {
-                        view?.resumeBackgroundAnimations()
-                        view?.changeSwipeIndicatorAnimation(R.raw.swipe_up)
-                    } else -> {}
+            override fun onLocationAvailability(locationAvailability: LocationAvailability?) {
+                super.onLocationAvailability(locationAvailability)
+                if(locationAvailability?.isLocationAvailable == false) {
+                    Log.d("WeatherPresenter", "onLocationAvailability: The user disabled location sharing. Please add error handling here.")
                 }
-                view?.showSwipeIndicator()
             }
-            
-        })
+        }, null)
     }
 
     override fun startSpeechRecognition(inflater: LayoutInflater, speechRecognizer: SpeechRecognizer, packageName: String, geoCoder: Geocoder) {
@@ -182,7 +144,7 @@ class WeatherPresenter(private val dataManager: WeatherManager) : WeatherContrac
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe { locationList ->
                         if (locationList.isNotEmpty()){
-                            getWeatherDataBySpeech(
+                            getWeatherData(
                                 locationList[0] as String,
                                 locationList[1] as Double,
                                 locationList[2] as Double
@@ -197,13 +159,29 @@ class WeatherPresenter(private val dataManager: WeatherManager) : WeatherContrac
         speechRecognizer.startListening(speechIntent)
     }
 
-    override fun onAttach(view: BaseContract.BaseView) {
-        this.view = view as WeatherContract.WeatherView
+    override fun onAttach(view: WeatherContract.WeatherView) {
+        this.view = view
     }
 
     override fun onDetach() {
         disposable?.dispose()
         this.view = null
+    }
+
+    fun getWeatherData(cityName: String? = null, latitude: Double, longitude: Double) {
+        disposable = dataManager.getWeatherDataByCoordinates(latitude, longitude)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        { weather ->
+                            view?.hideError()
+                            view?.hideLoading()
+                            view?.cancelDialog()
+                            processWeatherData(cityName ?: weather.current.getLocationName(), weather) },
+                        { error ->
+                            view?.hideLoading()
+                            view?.cancelDialog()
+                            view?.displayError(error) })
     }
 
     private fun processWeatherData(cityName: String, weather: Weather) {
@@ -253,19 +231,6 @@ class WeatherPresenter(private val dataManager: WeatherManager) : WeatherContrac
             return Single.just(emptyList())
         }
         return Single.just(emptyList())
-    }
-
-    fun getWeatherDataBySpeech(cityName: String, latitude: Double, longitude: Double) {
-        disposable = dataManager.getWeatherDataByCoordinates(latitude, longitude)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(
-                { weather ->
-                    view?.cancelDialog()
-                    processWeatherData(cityName, weather) },
-                { error ->
-                    view?.cancelDialog()
-                    view?.displayError(error) })
     }
 
 }

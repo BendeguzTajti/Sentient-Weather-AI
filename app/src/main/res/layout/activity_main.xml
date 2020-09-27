@@ -86,7 +86,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scaleType="centerCrop"
-        android:translationY="@dimen/bottomsheet_peek_height"
+        android:translationY="@dimen/main_background_translation_y"
         app:layout_dodgeInsetEdges="bottom"
         app:lottie_autoPlay="true"
         app:lottie_enableMergePathsForKitKatAndAbove="true"

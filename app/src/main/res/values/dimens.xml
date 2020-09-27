@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="bottomsheet_peek_height">@dimen/_50sdp</dimen>
+    <dimen name="main_background_translation_y">@dimen/_46sdp</dimen>
     <dimen name="current_temp_text_size">60sp</dimen>
     <dimen name="city_name_text_size">20sp</dimen>
     <dimen name="description_text_size">18sp</dimen>

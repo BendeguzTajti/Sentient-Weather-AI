@@ -49,9 +49,10 @@ class WeatherPresenterNetworkTest : KoinTest {
         val currentWeatherIcon = weatherData.current.weather.first().getWeatherIcon(currentHour)
         given(testDataManager.getWeatherDataByCoordinates(ArgumentMatchers.anyDouble(), ArgumentMatchers.anyDouble()))
             .willReturn(Single.just(weatherData))
-        presenter.getWeatherData(latitude, longitude)
+        presenter.getWeatherData(null, latitude, longitude)
         then(testView).should().hideError()
         then(testView).should().hideLoading()
+        then(testView).should().cancelDialog()
         if (currentHour in 6..17) {
             then(testView).should().createMainPageTheme(currentWeatherIcon,
                 null, R.color.colorDaySky, R.color.colorDayDetails)
@@ -73,15 +74,16 @@ class WeatherPresenterNetworkTest : KoinTest {
         val longitude = 0.0
         given(testDataManager.getWeatherDataByCoordinates(ArgumentMatchers.anyDouble(), ArgumentMatchers.anyDouble()))
             .willReturn(Single.error(Exception()))
-        presenter.getWeatherData(latitude, longitude)
+        presenter.getWeatherData(null, latitude, longitude)
         verify(testView, never()).hideError()
         then(testView).should().hideLoading()
+        then(testView).should().cancelDialog()
         then(testView).should().displayError(com.nhaarman.mockitokotlin2.any())
         then(testView).shouldHaveNoMoreInteractions()
     }
 
     @Test
-    fun test() {
+    fun getWeatherData_wrong_weather_data() {
         val weatherData = fakeWeatherData.getWeatherFailure()
         val latitude = 	0.0
         val longitude = 0.0
@@ -89,39 +91,15 @@ class WeatherPresenterNetworkTest : KoinTest {
         val currentWeatherIcon = weatherData.current.weather.firstOrNull()?.getWeatherIcon(currentHour) ?: -1
         given(testDataManager.getWeatherDataByCoordinates(ArgumentMatchers.anyDouble(), ArgumentMatchers.anyDouble()))
             .willReturn(Single.just(weatherData))
-        presenter.getWeatherData(latitude, longitude)
+        presenter.getWeatherData(null, latitude, longitude)
         then(testView).should().hideError()
         then(testView).should().hideLoading()
+        then(testView).should().cancelDialog()
         verify(testView, never()).createMainPageTheme(currentWeatherIcon,null, R.color.colorDaySky, R.color.colorDayDetails)
         verify(testView, never()).displayCurrentWeatherData(weatherData.current.name, weatherData.current)
         verify(testView, never()).displayForecastWeatherData(weatherData.forecast)
         then(testView).should().displayError(com.nhaarman.mockitokotlin2.any())
         then(testView).shouldHaveNoMoreInteractions()
-    }
-
-    @Test
-    fun getWeatherDataBySpeech_successful_network_call() {
-        val weatherData = fakeWeatherData.getWeatherSuccess()
-        val cityName = "Budapest"
-        val latitude = 	37.35
-        val longitude = 59.61
-        given(testDataManager.getWeatherDataByCoordinates(ArgumentMatchers.anyDouble(), ArgumentMatchers.anyDouble()))
-            .willReturn(Single.just(weatherData))
-        presenter.getWeatherDataBySpeech(cityName, latitude, longitude)
-        then(testView).should().cancelDialog()
-        verify(testView, never()).displayError(com.nhaarman.mockitokotlin2.any())
-    }
-
-    @Test
-    fun getWeatherDataBySpeech_failed_network_call() {
-        val cityName = "A city that doesn't exist"
-        val latitude = 	0.0
-        val longitude = 0.0
-        given(testDataManager.getWeatherDataByCoordinates(ArgumentMatchers.anyDouble(), ArgumentMatchers.anyDouble()))
-            .willReturn(Single.error(Exception()))
-        presenter.getWeatherDataBySpeech(cityName, latitude, longitude)
-        then(testView).should().cancelDialog()
-        then(testView).should().displayError(com.nhaarman.mockitokotlin2.any())
     }
 
 }

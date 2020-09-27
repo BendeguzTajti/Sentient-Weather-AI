@@ -8,8 +8,8 @@ interface BaseContract {
         fun displayError(exception: Throwable)
     }
 
-    interface BasePresenter {
-        fun onAttach(view: BaseView)
+    interface BasePresenter<in V:BaseView> {
+        fun onAttach(view: V)
         fun onDetach()
     }
 }
