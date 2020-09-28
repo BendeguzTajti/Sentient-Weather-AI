@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">SWAI</string>
     <string name="permission_dialog_title">Permission required</string>
     <string name="location_dialog_message">This app needs to access your location in order to work</string>
@@ -19,4 +19,6 @@
     <string name="internet_error_message">Your\'re offline. Check your connection.</string>
     <string name="retry_button_text">RETRY</string>
     <string name="server_error_message">"The server is currently overloaded.\nPlease try again later!"</string>
+    <string name="celsius" tools:ignore="TypographyOther">Celsius (C)</string>
+    <string name="fahrenheit">Fahrenheit (F)</string>
 </resources>

@@ -77,6 +77,7 @@ class WeatherPresenter(private val dataManager: WeatherManager) : WeatherContrac
                     val lastLocation = it.lastLocation
                     val latitude = lastLocation.latitude
                     val longitude = lastLocation.longitude
+                    dataManager.addTempUnit()
                     getWeatherData(null, latitude, longitude)
                 } ?: Log.d("WeatherPresenter", "onLocationAvailability: An error occurred with the location. Please add error handling here.")
             }
@@ -88,6 +89,14 @@ class WeatherPresenter(private val dataManager: WeatherManager) : WeatherContrac
                 }
             }
         }, null)
+    }
+
+    override fun getTempUnit(): String {
+        return dataManager.getTempUnit()
+    }
+
+    override fun saveTempUnit(unit: String) {
+        dataManager.saveTempUnit(unit)
     }
 
     override fun startSpeechRecognition(inflater: LayoutInflater, speechRecognizer: SpeechRecognizer, packageName: String, geoCoder: Geocoder) {

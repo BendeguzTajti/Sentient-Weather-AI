@@ -11,7 +11,9 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.speech.SpeechRecognizer
 import android.util.Log
+import android.view.MenuItem
 import android.view.View
+import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
@@ -46,6 +48,7 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
     private val forecastAdapter = ForecastAdapter()
     private var speechRecognizer: SpeechRecognizer? = null
     private var geoCoder: Geocoder? = null
+    private lateinit var tempUnit: String
     private lateinit var bottomSheet: BottomSheetBehavior<NestedScrollView>
     private lateinit var locationProvider: FusedLocationProviderClient
     private lateinit var toast: Toast
@@ -57,6 +60,7 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
         window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
         retryLoading.indeterminateDrawable.colorFilter = PorterDuffColorFilter(ContextCompat.getColor(this, R.color.colorRetryButton), PorterDuff.Mode.SRC_IN)
         presenter.onAttach(this)
+        tempUnit = presenter.getTempUnit()
         recyclerView.adapter = forecastAdapter
         recyclerView.layoutManager = LinearLayoutManager(this)
         bottomSheet = BottomSheetBehavior.from(bottomSheetPage)
@@ -124,15 +128,39 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
 
     @ExperimentalStdlibApi
     override fun displayCurrentWeatherData(city:String, currentWeather: WeatherCurrent.Result) {
-        mainTemp.text = currentWeather.main.getTempCelsius()
+        tempUnit = presenter.getTempUnit()
+        mainTemp.text = if (tempUnit == "Celsius") currentWeather.main.getTempCelsius() else currentWeather.main.getTempFahrenheit()
         cityName.text = city.capitalize(Locale.getDefault())
         description.text = currentWeather.weather.first().description
+        tempOptions.setOnClickListener { view ->
+            pauseMainPageAnimations()
+            PopupMenu(this, view).apply {
+                setOnMenuItemClickListener { item: MenuItem? ->
+                    when(item?.itemId) {
+                        R.id.celsius -> {
+                            presenter.saveTempUnit("Celsius")
+                            true
+                        }
+                        R.id.fahrenheit -> {
+                            presenter.saveTempUnit("Fahrenheit")
+                            true
+                        }
+                        else -> false
+                    }
+                }
+                inflate(R.menu.popup_menu)
+                setOnDismissListener {
+                    resumeMainPageAnimations()
+                }
+                show()
+            }
+        }
     }
 
     override fun displayForecastWeatherData(forecastWeather: WeatherForecast.Result) {
         addBottomSheetListener()
         speechButton.setOnClickListener { checkForPermission(Manifest.permission.RECORD_AUDIO, RECORD_AUDIO_RQ, getString(R.string.record_audio_dialog_message)) }
-        forecastAdapter.setForecastData(forecastWeather.daily.subList(0, 3))
+        forecastAdapter.setForecastData(tempUnit, forecastWeather.daily.subList(0, 3))
         bottomSheet.isDraggable = true
     }
 
@@ -220,17 +248,9 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
                         swipeIndicator.progress = 0.0f
                         swipeIndicator.playAnimation()
                     }
-                    BottomSheetBehavior.STATE_DRAGGING -> {
-                        if (mainBackground.isAnimating) {
-                            mainBackground.pauseAnimation()
-                        }
-                        mainWeatherIcon.pauseAnimation()
-                    }
+                    BottomSheetBehavior.STATE_DRAGGING -> pauseMainPageAnimations()
                     BottomSheetBehavior.STATE_COLLAPSED -> {
-                        if (mainBackground.progress < 0.99f) {
-                            mainBackground.resumeAnimation()
-                        }
-                        mainWeatherIcon.resumeAnimation()
+                        resumeMainPageAnimations()
                         swipeIndicator.setAnimation(R.raw.swipe_up)
                         swipeIndicator.progress = 0.0f
                         swipeIndicator.playAnimation()
@@ -246,5 +266,19 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
         if (this::toast.isInitialized) {
             toast.cancel()
         }
+    }
+
+    private fun pauseMainPageAnimations() {
+        if (mainBackground.isAnimating) {
+            mainBackground.pauseAnimation()
+        }
+        mainWeatherIcon.pauseAnimation()
+    }
+
+    private fun resumeMainPageAnimations() {
+        if (mainBackground.progress < 0.99f) {
+            mainBackground.resumeAnimation()
+        }
+        mainWeatherIcon.resumeAnimation()
     }
 }

@@ -4,13 +4,10 @@ import android.location.Geocoder
 import android.speech.SpeechRecognizer
 import android.view.LayoutInflater
 import androidx.appcompat.app.AlertDialog
-import androidx.core.widget.NestedScrollView
 import com.airbnb.lottie.LottieComposition
 import com.codecool.swai.model.WeatherCurrent
 import com.codecool.swai.model.WeatherForecast
-import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.material.bottomsheet.BottomSheetBehavior
 
 interface WeatherContract {
 
@@ -28,6 +25,8 @@ interface WeatherContract {
     interface WeatherPresenter: BaseContract.BasePresenter<WeatherView> {
         fun buildPermissionDialog(inflater: LayoutInflater, message: String, permission: String, requestCode: Int)
         fun getWeatherDataByUserLocation(locationProvider: FusedLocationProviderClient)
+        fun getTempUnit(): String
+        fun saveTempUnit(unit: String)
         fun startSpeechRecognition(inflater: LayoutInflater, speechRecognizer: SpeechRecognizer, packageName: String, geoCoder: Geocoder)
     }
 }

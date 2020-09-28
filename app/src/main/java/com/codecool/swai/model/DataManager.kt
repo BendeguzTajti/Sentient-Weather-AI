@@ -1,11 +1,12 @@
 package com.codecool.swai.model
 
+import android.content.SharedPreferences
 import com.codecool.swai.api.WeatherApiService
 import io.reactivex.Single
 import io.reactivex.functions.BiFunction
 import java.util.*
 
-class DataManager : WeatherManager {
+class DataManager(private val sharedPreferences: SharedPreferences) : WeatherManager {
 
     companion object {
         private const val API_KEY = "24b031540acbc5b0a68d9c8f4692734d"
@@ -22,5 +23,25 @@ class DataManager : WeatherManager {
         return Single.zip(currentWeather, forecastWeather, BiFunction { weather, forecast ->
             Weather(weather, forecast)
         })
+    }
+
+    override fun addTempUnit() {
+        val unit = sharedPreferences.getString("unit", null)
+        if (unit == null) {
+            val metricCountries = listOf("US", "BS", "KY", "LR", "PW", "MH", "FM")
+            if (metricCountries.contains(Locale.getDefault().country)) {
+                sharedPreferences.edit().putString("unit", "Fahrenheit").apply()
+            } else {
+                sharedPreferences.edit().putString("unit", "Celsius").apply()
+            }
+        }
+    }
+
+    override fun getTempUnit(): String {
+        return sharedPreferences.getString("unit", "Celsius") ?: "Celsius"
+    }
+
+    override fun saveTempUnit(unit: String) {
+        sharedPreferences.edit().putString("unit", unit).apply()
     }
 }

@@ -14,6 +14,7 @@ import kotlinx.android.synthetic.main.forecast_item.view.*
 class ForecastAdapter : RecyclerView.Adapter<ForecastAdapter.ViewHolder>() {
 
     private var forecastData : List<WeatherForecast.Forecast> = ArrayList()
+    private var tempUnit = "Celsius"
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val context: Context = itemView.context
@@ -30,18 +31,19 @@ class ForecastAdapter : RecyclerView.Adapter<ForecastAdapter.ViewHolder>() {
     @ExperimentalStdlibApi
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val currentForecast = forecastData[position]
-        val dayAndWeatherType = currentForecast.getDay() + "  •  " + holder.context.getString(currentForecast.weather[0].getWeatherType())
+        val dayAndWeatherType = currentForecast.getDay() + "  •  " + holder.context.getString(currentForecast.weather.first().getWeatherType())
         holder.forecastIcon.setAnimation(currentForecast.weather.first().getWeatherIcon())
         holder.forecastDayAndType.text = dayAndWeatherType
-        holder.forecastMinMaxTemp.text = currentForecast.temp.getMinMaxTempCelsius()
+        holder.forecastMinMaxTemp.text = if (tempUnit == "Celsius") currentForecast.temp.getMinMaxTempCelsius() else currentForecast.temp.getMinMaxTempFahrenheit()
     }
 
     override fun getItemCount(): Int {
         return forecastData.size
     }
 
-    fun setForecastData(forecastData: List<WeatherForecast.Forecast>) {
+    fun setForecastData(tempUnit: String, forecastData: List<WeatherForecast.Forecast>) {
         this.forecastData = forecastData
-        notifyDataSetChanged()
+        this.tempUnit = tempUnit
+        notifyItemRangeChanged(0, itemCount)
     }
 }
