@@ -37,10 +37,6 @@ class DataManager(private val sharedPreferences: SharedPreferences) : WeatherMan
         }
     }
 
-    override fun getTempUnit(): String {
-        return sharedPreferences.getString("unit", "Celsius") ?: "Celsius"
-    }
-
     override fun saveTempUnit(unit: String) {
         sharedPreferences.edit().putString("unit", unit).apply()
     }

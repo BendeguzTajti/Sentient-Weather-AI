@@ -6,6 +6,8 @@
     <dimen name="city_name_text_size">20sp</dimen>
     <dimen name="description_text_size">18sp</dimen>
     <dimen name="text_padding_default">@dimen/_5sdp</dimen>
+    <dimen name="temp_options_size">@dimen/_35sdp</dimen>
+    <dimen name="temp_options_margin_top">@dimen/_80sdp</dimen>
     <dimen name="main_temp_margin_top">@dimen/_100sdp</dimen>
     <dimen name="main_page_margin_default">@dimen/_10sdp</dimen>
     <dimen name="recyclerview_margin">@dimen/_20sdp</dimen>

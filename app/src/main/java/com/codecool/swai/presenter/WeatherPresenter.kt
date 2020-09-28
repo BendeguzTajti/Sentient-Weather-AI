@@ -91,10 +91,6 @@ class WeatherPresenter(private val dataManager: WeatherManager) : WeatherContrac
         }, null)
     }
 
-    override fun getTempUnit(): String {
-        return dataManager.getTempUnit()
-    }
-
     override fun saveTempUnit(unit: String) {
         dataManager.saveTempUnit(unit)
     }
@@ -159,7 +155,7 @@ class WeatherPresenter(private val dataManager: WeatherManager) : WeatherContrac
                                 locationList[2] as Double
                             )
                     } else {
-                            speechDialog.cancel()
+//                            speechDialog.cancel()
                             view?.showToast(R.string.no_results, Toast.LENGTH_SHORT)
                         }}
             }
@@ -202,8 +198,7 @@ class WeatherPresenter(private val dataManager: WeatherManager) : WeatherContrac
             } else{
                 view?.createMainPageTheme(currentWeatherIcon, nightBackground, R.color.colorNightSky, R.color.colorNightDetails)
             }
-            view?.displayCurrentWeatherData(cityName, weather.current)
-            view?.displayForecastWeatherData(weather.forecast)
+            view?.displayWeatherData(cityName, weather)
         } else {
             view?.displayError(ApiException(Status.RESULT_CANCELED))
         }

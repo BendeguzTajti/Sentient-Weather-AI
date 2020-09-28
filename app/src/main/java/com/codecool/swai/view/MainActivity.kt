@@ -19,19 +19,20 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.widget.NestedScrollView
+import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.airbnb.lottie.LottieComposition
 import com.codecool.swai.R
 import com.codecool.swai.adapter.ForecastAdapter
 import com.codecool.swai.contract.WeatherContract
-import com.codecool.swai.model.WeatherCurrent
-import com.codecool.swai.model.WeatherForecast
+import com.codecool.swai.model.Weather
 import com.codecool.swai.presenter.WeatherPresenter
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import kotlinx.android.synthetic.main.activity_main.*
+import me.ibrahimsn.library.LiveSharedPreferences
 import org.koin.android.ext.android.inject
 import java.net.UnknownHostException
 import java.util.*
@@ -45,9 +46,11 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
     }
 
     private val presenter: WeatherPresenter by inject()
+    private val liveSharedPref: LiveSharedPreferences by inject()
     private val forecastAdapter = ForecastAdapter()
     private var speechRecognizer: SpeechRecognizer? = null
     private var geoCoder: Geocoder? = null
+    private lateinit var displayedWeather: Weather
     private lateinit var tempUnit: String
     private lateinit var bottomSheet: BottomSheetBehavior<NestedScrollView>
     private lateinit var locationProvider: FusedLocationProviderClient
@@ -59,19 +62,18 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
         setContentView(R.layout.activity_main)
         window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
         retryLoading.indeterminateDrawable.colorFilter = PorterDuffColorFilter(ContextCompat.getColor(this, R.color.colorRetryButton), PorterDuff.Mode.SRC_IN)
-        presenter.onAttach(this)
-        tempUnit = presenter.getTempUnit()
-        recyclerView.adapter = forecastAdapter
-        recyclerView.layoutManager = LinearLayoutManager(this)
-        bottomSheet = BottomSheetBehavior.from(bottomSheetPage)
-    }
-
-    override fun onStart() {
-        super.onStart()
         locationProvider = LocationServices.getFusedLocationProviderClient(this)
         speechRecognizer = if (SpeechRecognizer.isRecognitionAvailable(this)) SpeechRecognizer.createSpeechRecognizer(this) else null
         geoCoder = if (Geocoder.isPresent()) Geocoder(this, Locale.getDefault()) else null
         if(speechRecognizer != null && geoCoder != null) speechButtonContainer.visibility = View.VISIBLE
+        bottomSheet = BottomSheetBehavior.from(bottomSheetPage)
+        recyclerView.adapter = forecastAdapter
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        liveSharedPref.getString("unit", "Celsius").observe(this, Observer<String> { value ->
+            updateWeatherTemp(value)  })
+        presenter.onAttach(this)
+        addBottomSheetListener()
+        speechButton.setOnClickListener { checkForPermission(Manifest.permission.RECORD_AUDIO, RECORD_AUDIO_RQ, getString(R.string.record_audio_dialog_message)) }
         checkForPermission(Manifest.permission.ACCESS_FINE_LOCATION, FINE_LOCATION_RQ, getString(R.string.location_dialog_message))
     }
 
@@ -121,47 +123,18 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
         }
         bottomSheet.state = BottomSheetBehavior.STATE_COLLAPSED
         mainPageData.visibility = View.VISIBLE
-        if (mainBackground.progress < 0.99f) {
-            mainBackground.resumeAnimation()
-        }
+        resumeMainPageAnimations()
     }
 
     @ExperimentalStdlibApi
-    override fun displayCurrentWeatherData(city:String, currentWeather: WeatherCurrent.Result) {
-        tempUnit = presenter.getTempUnit()
-        mainTemp.text = if (tempUnit == "Celsius") currentWeather.main.getTempCelsius() else currentWeather.main.getTempFahrenheit()
+    override fun displayWeatherData(city:String, weather: Weather) {
+        displayedWeather = weather
+        mainTemp.text = if (tempUnit == "Celsius") weather.current.main.getTempCelsius() else weather.current.main.getTempFahrenheit()
         cityName.text = city.capitalize(Locale.getDefault())
-        description.text = currentWeather.weather.first().description
-        tempOptions.setOnClickListener { view ->
-            pauseMainPageAnimations()
-            PopupMenu(this, view).apply {
-                setOnMenuItemClickListener { item: MenuItem? ->
-                    when(item?.itemId) {
-                        R.id.celsius -> {
-                            presenter.saveTempUnit("Celsius")
-                            true
-                        }
-                        R.id.fahrenheit -> {
-                            presenter.saveTempUnit("Fahrenheit")
-                            true
-                        }
-                        else -> false
-                    }
-                }
-                inflate(R.menu.popup_menu)
-                setOnDismissListener {
-                    resumeMainPageAnimations()
-                }
-                show()
-            }
-        }
-    }
-
-    override fun displayForecastWeatherData(forecastWeather: WeatherForecast.Result) {
-        addBottomSheetListener()
-        speechButton.setOnClickListener { checkForPermission(Manifest.permission.RECORD_AUDIO, RECORD_AUDIO_RQ, getString(R.string.record_audio_dialog_message)) }
-        forecastAdapter.setForecastData(tempUnit, forecastWeather.daily.subList(0, 3))
+        description.text = weather.current.weather.first().description
+        forecastAdapter.setForecastData(tempUnit, weather.forecast.daily.subList(0, 3))
         bottomSheet.isDraggable = true
+        addPopupMenuListener()
     }
 
     override fun showToast(message: Int, toastLength: Int) {
@@ -232,6 +205,32 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
         }
     }
 
+    private fun addPopupMenuListener() {
+        tempOptions.setOnClickListener { view ->
+            pauseMainPageAnimations()
+            PopupMenu(this, view).apply {
+                setOnMenuItemClickListener { item: MenuItem? ->
+                    when(item?.itemId) {
+                        R.id.celsius -> {
+                            if (tempUnit != "Celsius") presenter.saveTempUnit("Celsius")
+                            true
+                        }
+                        R.id.fahrenheit -> {
+                            if (tempUnit != "Fahrenheit") presenter.saveTempUnit("Fahrenheit")
+                            true
+                        }
+                        else -> false
+                    }
+                }
+                inflate(R.menu.popup_menu)
+                setOnDismissListener {
+                    resumeMainPageAnimations()
+                }
+                show()
+            }
+        }
+    }
+
     private fun addBottomSheetListener() {
         bottomSheet.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
 
@@ -260,6 +259,14 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
             }
 
         })
+    }
+
+    private fun updateWeatherTemp(tempUnit: String) {
+        this.tempUnit = tempUnit
+        if (this::displayedWeather.isInitialized) {
+            mainTemp.text = if (tempUnit == "Celsius") displayedWeather.current.main.getTempCelsius() else displayedWeather.current.main.getTempFahrenheit()
+            forecastAdapter.updateForecastTemp(tempUnit)
+        }
     }
 
     private fun cancelToast() {

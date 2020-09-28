@@ -60,6 +60,9 @@ dependencies {
     //Koin
     implementation "org.koin:koin-android:2.1.6"
 
+    // Live shared preferences
+    implementation 'com.github.ibrahimsn98:live-preferences:1.9'
+
     testImplementation 'androidx.test.ext:junit:1.1.2'
     testImplementation 'androidx.test:rules:1.3.0'
     testImplementation 'junit:junit:4.12'

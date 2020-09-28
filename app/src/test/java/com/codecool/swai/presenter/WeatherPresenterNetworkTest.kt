@@ -61,7 +61,7 @@ class WeatherPresenterNetworkTest : KoinTest {
                 null, R.color.colorNightSky, R.color.colorNightDetails)
         }
         then(testView).should()
-            .displayCurrentWeatherData(weatherData.current.name, weatherData.current)
+            .displayWeatherData(weatherData.current.name, weatherData.current)
         then(testView).should()
             .displayForecastWeatherData(weatherData.forecast)
         verify(testView, never()).displayError(com.nhaarman.mockitokotlin2.any())
@@ -96,7 +96,7 @@ class WeatherPresenterNetworkTest : KoinTest {
         then(testView).should().hideLoading()
         then(testView).should().cancelDialog()
         verify(testView, never()).createMainPageTheme(currentWeatherIcon,null, R.color.colorDaySky, R.color.colorDayDetails)
-        verify(testView, never()).displayCurrentWeatherData(weatherData.current.name, weatherData.current)
+        verify(testView, never()).displayWeatherData(weatherData.current.name, weatherData.current)
         verify(testView, never()).displayForecastWeatherData(weatherData.forecast)
         then(testView).should().displayError(com.nhaarman.mockitokotlin2.any())
         then(testView).shouldHaveNoMoreInteractions()

@@ -46,4 +46,11 @@ class ForecastAdapter : RecyclerView.Adapter<ForecastAdapter.ViewHolder>() {
         this.tempUnit = tempUnit
         notifyItemRangeChanged(0, itemCount)
     }
+
+    fun updateForecastTemp(tempUnit: String) {
+        if (this.tempUnit != tempUnit) {
+            this.tempUnit = tempUnit
+            notifyItemRangeChanged(0, itemCount)
+        }
+    }
 }
