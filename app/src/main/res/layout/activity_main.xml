@@ -82,25 +82,24 @@
 
     </RelativeLayout>
 
-    <com.airbnb.lottie.LottieAnimationView
-        android:id="@+id/mainBackground"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:scaleType="centerCrop"
-        android:translationY="@dimen/main_background_translation_y"
-        app:layout_dodgeInsetEdges="bottom"
-        app:lottie_autoPlay="true"
-        app:lottie_enableMergePathsForKitKatAndAbove="true"
-        app:lottie_loop="false"
-        tools:src="@drawable/background_placeholder" />
-
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/mainPageData"
+        android:id="@+id/mainPage"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:translationY="@dimen/main_page_translation_y"
         android:visibility="invisible"
         app:layout_dodgeInsetEdges="bottom"
         tools:visibility="visible">
+
+        <com.airbnb.lottie.LottieAnimationView
+            android:id="@+id/mainBackground"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            app:lottie_autoPlay="true"
+            app:lottie_enableMergePathsForKitKatAndAbove="true"
+            app:lottie_loop="false"
+            tools:src="@drawable/background_placeholder" />
 
         <ImageButton
             android:id="@+id/tempOptions"
@@ -203,6 +202,7 @@
                     android:id="@+id/swipeIndicator"
                     android:layout_width="@dimen/swipe_indicator_size"
                     android:layout_height="@dimen/swipe_indicator_size"
+                    android:visibility="gone"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintRight_toRightOf="parent"

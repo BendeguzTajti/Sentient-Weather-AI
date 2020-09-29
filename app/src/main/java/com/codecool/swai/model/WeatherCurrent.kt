@@ -1,5 +1,7 @@
 package com.codecool.swai.model
 
+import com.airbnb.lottie.LottieComposition
+import com.codecool.swai.BaseApp
 import com.codecool.swai.R
 import java.text.SimpleDateFormat
 import java.util.*
@@ -8,7 +10,7 @@ import kotlin.math.roundToInt
 
 class WeatherCurrent {
 
-    data class Result(val weather: List<Weather>, val main: Temperature, val timezone: Long, val name: String, val cod: Int) {
+    data class Result(val weather: List<Weather>, val main: Temperature, val timezone: Long, var name: String, val cod: Int) {
 
         fun getCurrentHour(): Int {
             val timeZone = TimeZone.getTimeZone("UTC")
@@ -18,15 +20,18 @@ class WeatherCurrent {
             return dateFormat.format(Date()).toInt()
         }
 
+        @ExperimentalStdlibApi
         fun getLocationName(): String {
-            return name.replace(" keruelet", " kerület", false)
+            return name.replace(" keruelet", " kerület", false).capitalize(Locale.getDefault())
         }
-    }
 
-    data class Weather(val main: String, val description: String) {
+        fun getDescription(): String {
+            return weather.first().description
+        }
 
-        fun getWeatherIcon(currentHour: Int): Int {
-            return when(main) {
+        fun getWeatherIcon(): Int {
+            val currentHour = getCurrentHour()
+            return when(weather.first().main) {
                 "Thunderstorm" -> R.raw.thunder
                 "Drizzle" -> R.raw.drizzle
                 "Rain" -> if (currentHour in 6..17) R.raw.rainy_day else R.raw.rainy_night
@@ -36,15 +41,31 @@ class WeatherCurrent {
                 else -> R.raw.atmosphere
             }
         }
+
+        fun getBackground(): LottieComposition? {
+            val currentHour = getCurrentHour()
+            return if (currentHour in 6..17) BaseApp.dayBackground else BaseApp.nightBackground
+        }
+
+        fun getSkyAndGroundColors(): Array<Int> {
+            val currentHour = getCurrentHour()
+            return if (currentHour in 6..17) arrayOf(R.color.colorDaySky, R.color.colorDayDetails) else arrayOf(R.color.colorNightSky, R.color.colorNightDetails)
+        }
     }
+
+    data class Weather(val main: String, val description: String)
 
     data class Temperature(val temp: Double) {
 
-        fun getTempCelsius(): String {
+        fun getTemp(tempUnit: String): String {
+            return if (tempUnit == "Celsius") getTempCelsius() else getTempFahrenheit()
+        }
+
+        private fun getTempCelsius(): String {
             return "${(temp - 273.15).roundToInt()}°C"
         }
 
-        fun getTempFahrenheit(): String {
+        private fun getTempFahrenheit(): String {
             return "${(((temp - 273.15) * 9 / 5) + 32).roundToInt()}°F"
         }
     }

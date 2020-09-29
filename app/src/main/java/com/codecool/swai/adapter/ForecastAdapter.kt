@@ -31,10 +31,10 @@ class ForecastAdapter : RecyclerView.Adapter<ForecastAdapter.ViewHolder>() {
     @ExperimentalStdlibApi
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val currentForecast = forecastData[position]
-        val dayAndWeatherType = currentForecast.getDay() + "  •  " + holder.context.getString(currentForecast.weather.first().getWeatherType())
-        holder.forecastIcon.setAnimation(currentForecast.weather.first().getWeatherIcon())
+        val dayAndWeatherType = currentForecast.getDay() + "  •  " + holder.context.getString(currentForecast.getWeatherType())
+        holder.forecastIcon.setAnimation(currentForecast.getWeatherIcon())
         holder.forecastDayAndType.text = dayAndWeatherType
-        holder.forecastMinMaxTemp.text = if (tempUnit == "Celsius") currentForecast.temp.getMinMaxTempCelsius() else currentForecast.temp.getMinMaxTempFahrenheit()
+        holder.forecastMinMaxTemp.text = currentForecast.temp.getMinMaxTemp(tempUnit)
     }
 
     override fun getItemCount(): Int {

@@ -1,13 +1,11 @@
 package com.codecool.swai.presenter
 
 import android.annotation.SuppressLint
-import android.content.Intent
 import android.content.res.ColorStateList
 import android.location.Geocoder
 import android.os.Build
 import android.os.Bundle
 import android.speech.RecognitionListener
-import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.util.Log
 import android.view.LayoutInflater
@@ -19,8 +17,6 @@ import androidx.appcompat.app.AlertDialog
 import com.codecool.swai.R
 import com.codecool.swai.contract.WeatherContract
 import com.codecool.swai.model.Weather
-import com.codecool.swai.BaseApp.Companion.dayBackground
-import com.codecool.swai.BaseApp.Companion.nightBackground
 import com.codecool.swai.model.WeatherManager
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.Status
@@ -31,13 +27,13 @@ import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import java.io.IOException
 import java.net.HttpURLConnection
-import java.util.*
 import kotlin.collections.ArrayList
 
 class WeatherPresenter(private val dataManager: WeatherManager) : WeatherContract.WeatherPresenter {
 
     private var view: WeatherContract.WeatherView? = null
     private var disposable: Disposable? = null
+    private var latestWeatherData: Weather? = null
 
     @SuppressLint("InflateParams")
     override fun buildPermissionDialog(inflater: LayoutInflater, message: String, permission: String, requestCode: Int) {
@@ -91,18 +87,17 @@ class WeatherPresenter(private val dataManager: WeatherManager) : WeatherContrac
         }, null)
     }
 
+    override fun getLatestWeatherData(): Weather? {
+        return latestWeatherData
+    }
+
     override fun saveTempUnit(unit: String) {
         dataManager.saveTempUnit(unit)
     }
 
-    override fun startSpeechRecognition(inflater: LayoutInflater, speechRecognizer: SpeechRecognizer, packageName: String, geoCoder: Geocoder) {
-        val speechDialog = buildSpeechDialog(inflater)
-        val speechIntent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
-        speechIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-        speechIntent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 1500)
-        speechIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
-        speechIntent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, packageName)
+    override fun registerSpeechListener(inflater: LayoutInflater, speechRecognizer: SpeechRecognizer, geoCoder: Geocoder) {
         speechRecognizer.setRecognitionListener(object : RecognitionListener {
+            val speechDialog = buildSpeechDialog(inflater)
 
             override fun onReadyForSpeech(params: Bundle?) {
                 view?.showDialog(speechDialog)
@@ -145,23 +140,22 @@ class WeatherPresenter(private val dataManager: WeatherManager) : WeatherContrac
                 val matches: ArrayList<String>? = results!!.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                 val speechInput: String = matches!!.first()
                 disposable = getCoordinatesBySpeech(geoCoder, speechInput)
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe { locationList ->
-                        if (locationList.isNotEmpty()){
-                            getWeatherData(
-                                locationList[0] as String,
-                                locationList[1] as Double,
-                                locationList[2] as Double
-                            )
-                    } else {
-//                            speechDialog.cancel()
-                            view?.showToast(R.string.no_results, Toast.LENGTH_SHORT)
-                        }}
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe { locationList ->
+                            if (locationList.isNotEmpty()){
+                                getWeatherData(
+                                        locationList[0] as String,
+                                        locationList[1] as Double,
+                                        locationList[2] as Double
+                                )
+                            } else {
+                                speechDialog.cancel()
+                                view?.showToast(R.string.no_results, Toast.LENGTH_SHORT)
+                            }}
             }
 
         })
-        speechRecognizer.startListening(speechIntent)
     }
 
     override fun onAttach(view: WeatherContract.WeatherView) {
@@ -179,26 +173,21 @@ class WeatherPresenter(private val dataManager: WeatherManager) : WeatherContrac
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         { weather ->
+                            latestWeatherData = weather
                             view?.hideError()
                             view?.hideLoading()
                             view?.cancelDialog()
-                            processWeatherData(cityName ?: weather.current.getLocationName(), weather) },
+                            cityName?.let { weather.current.name = it }
+                            processWeatherData(weather) },
                         { error ->
                             view?.hideLoading()
                             view?.cancelDialog()
                             view?.displayError(error) })
     }
 
-    private fun processWeatherData(cityName: String, weather: Weather) {
+    private fun processWeatherData(weather: Weather) {
         if (weather.current.cod == HttpURLConnection.HTTP_OK && weather.forecast.daily.isNotEmpty()) {
-            val currentHour = weather.current.getCurrentHour()
-            val currentWeatherIcon = weather.current.weather.first().getWeatherIcon(currentHour)
-            if (currentHour in 6..17) {
-                view?.createMainPageTheme(currentWeatherIcon, dayBackground, R.color.colorDaySky, R.color.colorDayDetails)
-            } else{
-                view?.createMainPageTheme(currentWeatherIcon, nightBackground, R.color.colorNightSky, R.color.colorNightDetails)
-            }
-            view?.displayWeatherData(cityName, weather)
+            view?.displayWeatherData(weather)
         } else {
             view?.displayError(ApiException(Status.RESULT_CANCELED))
         }

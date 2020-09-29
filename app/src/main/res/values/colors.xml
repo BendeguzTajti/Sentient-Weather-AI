@@ -2,7 +2,7 @@
 <resources>
     <color name="colorPrimary">#FAFAFA</color>
     <color name="colorPrimaryDark">#333</color>
-    <color name="colorAccent">#03DAC5</color>
+    <color name="colorAccent">#CC4379</color>
     <color name="colorTransparent">#00FFFFFF</color>
     <color name="colorDaySky">#81BEF0</color>
     <color name="colorDayDetails">#333333</color>
