@@ -33,7 +33,6 @@ class WeatherPresenter(private val dataManager: WeatherManager) : WeatherContrac
 
     private var view: WeatherContract.WeatherView? = null
     private var disposable: Disposable? = null
-    private var latestWeatherData: Weather? = null
 
     @SuppressLint("InflateParams")
     override fun buildPermissionDialog(inflater: LayoutInflater, message: String, permission: String, requestCode: Int) {
@@ -60,6 +59,7 @@ class WeatherPresenter(private val dataManager: WeatherManager) : WeatherContrac
 
     @SuppressLint("MissingPermission")
     override fun getWeatherDataByUserLocation(locationProvider: FusedLocationProviderClient) {
+        view?.showLoading()
         val locationRequest = LocationRequest.create().apply {
             numUpdates = 1
             priority = LocationRequest.PRIORITY_HIGH_ACCURACY
@@ -88,7 +88,7 @@ class WeatherPresenter(private val dataManager: WeatherManager) : WeatherContrac
     }
 
     override fun getLatestWeatherData(): Weather? {
-        return latestWeatherData
+        return dataManager.getLatestWeatherData()
     }
 
     override fun saveTempUnit(unit: String) {
@@ -137,6 +137,7 @@ class WeatherPresenter(private val dataManager: WeatherManager) : WeatherContrac
             }
 
             override fun onResults(results: Bundle?) {
+
                 val matches: ArrayList<String>? = results!!.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                 val speechInput: String = matches!!.first()
                 disposable = getCoordinatesBySpeech(geoCoder, speechInput)
@@ -173,7 +174,7 @@ class WeatherPresenter(private val dataManager: WeatherManager) : WeatherContrac
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         { weather ->
-                            latestWeatherData = weather
+                            dataManager.addLatestWeatherData(weather)
                             view?.hideError()
                             view?.hideLoading()
                             view?.cancelDialog()

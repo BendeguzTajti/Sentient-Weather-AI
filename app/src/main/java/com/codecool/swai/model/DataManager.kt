@@ -13,6 +13,7 @@ class DataManager(private val sharedPreferences: SharedPreferences) : WeatherMan
         private const val DATA_TO_EXCLUDE = "current,minutely,hourly"
     }
 
+    private var latestWeatherData: Weather? = null
     private val weatherApiService by lazy {
         WeatherApiService.create()
     }
@@ -23,6 +24,14 @@ class DataManager(private val sharedPreferences: SharedPreferences) : WeatherMan
         return Single.zip(currentWeather, forecastWeather, BiFunction { weather, forecast ->
             Weather(weather, forecast)
         })
+    }
+
+    override fun addLatestWeatherData(weather: Weather) {
+        this.latestWeatherData = weather
+    }
+
+    override fun getLatestWeatherData(): Weather? {
+        return latestWeatherData
     }
 
     override fun addTempUnit() {

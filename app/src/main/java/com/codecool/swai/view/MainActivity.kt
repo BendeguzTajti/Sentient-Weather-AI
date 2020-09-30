@@ -13,6 +13,8 @@ import android.speech.SpeechRecognizer
 import android.util.Log
 import android.view.MenuItem
 import android.view.View
+import android.view.animation.Animation
+import android.view.animation.AnimationUtils
 import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -46,10 +48,10 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
 
     private val presenter: WeatherPresenter by inject()
     private val liveSharedPref: LiveSharedPreferences by inject()
+    private var tempUnit: String? = null
     private val forecastAdapter = ForecastAdapter()
     private var speechRecognizer: SpeechRecognizer? = null
     private var geoCoder: Geocoder? = null
-    private lateinit var tempUnit: String
     private lateinit var bottomSheet: BottomSheetBehavior<NestedScrollView>
     private lateinit var locationProvider: FusedLocationProviderClient
     private lateinit var toast: Toast
@@ -114,10 +116,10 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
     @ExperimentalStdlibApi
     override fun displayWeatherData(weather: Weather) {
         createMainPageTheme(weather)
-        mainTemp.text = weather.current.main.getTemp(tempUnit)
+        mainTemp.text = weather.current.main.getTemp(tempUnit!!)
         cityName.text = weather.current.getLocationName()
         description.text = weather.current.getDescription()
-        forecastAdapter.setForecastData(tempUnit, weather.forecast.daily.subList(0, 3))
+        forecastAdapter.setForecastData(tempUnit!!, weather.forecast.daily.subList(0, 3))
         bottomSheet.isDraggable = true
     }
 
@@ -144,6 +146,10 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
     override fun cancelSpeechRecognition() {
         speechRecognizer?.cancel()
         cancelDialog()
+    }
+
+    override fun showLoading() {
+        loadingScreen.visibility = View.VISIBLE
     }
 
     override fun hideLoading() {
@@ -194,12 +200,13 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
         val background = weather.current.getBackground()
         mainWeatherIcon.setAnimation(weatherIcon)
         if (mainBackground.composition != background) {
+            rootLayout.startAnimation(AnimationUtils.loadAnimation(this, R.anim.background_fade_out))
             val skyAndGroundColor: Array<Int> = weather.current.getSkyAndGroundColors()
             val colorSky = ContextCompat.getColor(this, skyAndGroundColor.first())
             val colorGround = ContextCompat.getColor(this, skyAndGroundColor.last())
-            mainBackground.setComposition(background!!)
+            mainBackground.setComposition(background)
             mainBackground.setBackgroundColor(colorSky)
-            mainTemp.setBackgroundColor(colorSky)
+            mainTempContainer.setBackgroundColor(colorSky)
             description.setBackgroundColor(colorSky)
             mainWeatherIcon.setBackgroundColor(colorSky)
             rootLayout.setBackgroundColor(colorGround)
@@ -223,13 +230,15 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
                             if (tempUnit != "Fahrenheit") presenter.saveTempUnit("Fahrenheit")
                             true
                         }
-                        else -> false
+                        else -> {
+                            false
+                        }
                     }
                 }
-                inflate(R.menu.popup_menu)
                 setOnDismissListener {
                     resumeMainPageAnimations()
                 }
+                inflate(R.menu.popup_menu)
                 show()
             }
         }
@@ -275,11 +284,27 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
     }
 
     private fun updateWeatherTemp(tempUnit: String) {
-        this.tempUnit = tempUnit
-        val weatherData = presenter.getLatestWeatherData()
-        weatherData?.let {
-            mainTemp.text = it.current.main.getTemp(tempUnit)
-            forecastAdapter.updateForecastTemp(tempUnit)
+        if (this.tempUnit != tempUnit) {
+            this.tempUnit = tempUnit
+            val weatherData = presenter.getLatestWeatherData()
+            weatherData?.let {
+                val slideAnim = AnimationUtils.loadAnimation(this, R.anim.text_fade_in_out)
+                slideAnim.setAnimationListener(object :Animation.AnimationListener {
+                    override fun onAnimationRepeat(animation: Animation?) {
+                        mainTemp.text = it.current.main.getTemp(tempUnit)
+                    }
+
+                    override fun onAnimationEnd(animation: Animation?) {
+                        resumeMainPageAnimations()
+                    }
+
+                    override fun onAnimationStart(animation: Animation?) {
+                        pauseMainPageAnimations()
+                    }
+                })
+                mainTemp.startAnimation(slideAnim)
+                forecastAdapter.updateForecastTemp(tempUnit)
+            }
         }
     }
 

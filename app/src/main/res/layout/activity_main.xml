@@ -12,6 +12,7 @@
         android:id="@+id/loadingScreen"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:visibility="gone"
         app:lottie_autoPlay="true"
         app:lottie_enableMergePathsForKitKatAndAbove="true"
         app:lottie_loop="true"
@@ -109,35 +110,44 @@
             android:layout_marginEnd="@dimen/main_page_margin_default"
             android:layout_marginRight="@dimen/main_page_margin_default"
             android:background="@drawable/ic_more_vert_24"
-            app:layout_constraintLeft_toRightOf="@+id/mainWeatherIcon"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             tools:ignore="ContentDescription" />
 
-        <TextView
-            android:id="@+id/mainTemp"
-            android:layout_width="wrap_content"
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/mainTempContainer"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/main_page_margin_default"
             android:layout_marginLeft="@dimen/main_page_margin_default"
             android:layout_marginTop="@dimen/main_temp_margin_top"
-            android:fontFamily="@font/montserrat"
             android:padding="@dimen/text_padding_default"
-            android:textColor="@color/colorPrimary"
-            android:textSize="@dimen/current_temp_text_size"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:text="30°C" />
+            app:layout_constraintRight_toLeftOf="@+id/mainWeatherIcon"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <TextView
+                android:id="@+id/mainTemp"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:fontFamily="@font/montserrat"
+                android:textColor="@color/colorPrimary"
+                android:textSize="@dimen/current_temp_text_size"
+                tools:text="30°C" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
         <com.airbnb.lottie.LottieAnimationView
             android:id="@+id/mainWeatherIcon"
             android:layout_width="@dimen/current_weather_icon_size"
             android:layout_height="@dimen/current_weather_icon_size"
+            android:layout_marginEnd="@dimen/_50sdp"
+            android:layout_marginRight="@dimen/_50sdp"
             android:scaleType="centerCrop"
-            app:layout_constraintBottom_toBottomOf="@+id/mainTemp"
-            app:layout_constraintLeft_toRightOf="@+id/mainTemp"
+            app:layout_constraintBottom_toBottomOf="@+id/mainTempContainer"
+            app:layout_constraintLeft_toRightOf="@+id/mainTempContainer"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/mainTemp"
+            app:layout_constraintTop_toTopOf="@+id/mainTempContainer"
             app:lottie_autoPlay="true"
             app:lottie_loop="true" />
 
@@ -155,7 +165,7 @@
             android:textSize="@dimen/city_name_text_size"
             android:textStyle="bold"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/mainTemp"
+            app:layout_constraintTop_toBottomOf="@+id/mainTempContainer"
             tools:text="Budapest" />
 
         <TextView

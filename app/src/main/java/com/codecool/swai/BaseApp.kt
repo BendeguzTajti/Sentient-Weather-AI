@@ -9,8 +9,8 @@ import org.koin.core.context.startKoin
 class BaseApp : Application() {
 
     companion object {
-        var dayBackground: LottieComposition? = null
-        var nightBackground: LottieComposition? = null
+        lateinit var dayBackground: LottieComposition
+        lateinit var nightBackground: LottieComposition
     }
 
     override fun onCreate() {

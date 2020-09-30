@@ -27,7 +27,7 @@
     <dimen name="dialog_button_margin">@dimen/_18sdp</dimen>
     <dimen name="information_sign_size">@dimen/_60sdp</dimen>
     <dimen name="details_page_padding">@dimen/_20sdp</dimen>
-    <dimen name="swipe_indicator_size">@dimen/_34sdp</dimen>
+    <dimen name="swipe_indicator_size">@dimen/_32sdp</dimen>
     <dimen name="speech_dialog_padding">@dimen/_20sdp</dimen>
     <dimen name="robot_size">@dimen/_200sdp</dimen>
     <dimen name="cancel_button_size">@dimen/_50sdp</dimen>

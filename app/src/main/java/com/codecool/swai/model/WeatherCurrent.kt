@@ -42,7 +42,7 @@ class WeatherCurrent {
             }
         }
 
-        fun getBackground(): LottieComposition? {
+        fun getBackground(): LottieComposition {
             val currentHour = getCurrentHour()
             return if (currentHour in 6..17) BaseApp.dayBackground else BaseApp.nightBackground
         }
@@ -55,7 +55,7 @@ class WeatherCurrent {
 
     data class Weather(val main: String, val description: String)
 
-    data class Temperature(val temp: Double) {
+    data class Temperature(val temp: Double, var isAnimating: Boolean = false) {
 
         fun getTemp(tempUnit: String): String {
             return if (tempUnit == "Celsius") getTempCelsius() else getTempFahrenheit()
