@@ -1,9 +1,14 @@
 package com.codecool.swai.model
 
+import android.annotation.SuppressLint
 import android.location.Geocoder
+import com.google.android.gms.location.*
+import io.reactivex.Single
 import java.io.IOException
 
-class LocationDataManager(private val geoCoder: Geocoder): LocationManager {
+class LocationDataManager(
+        private val geoCoder: Geocoder,
+        private val fusedLocationProvider: FusedLocationProviderClient): LocationManager {
 
     override fun getCoordinatesBySpeech(speechInput: String): List<Any> {
         try {
@@ -23,5 +28,19 @@ class LocationDataManager(private val geoCoder: Geocoder): LocationManager {
             return emptyList()
         }
         return emptyList()
+    }
+
+    @SuppressLint("MissingPermission")
+    override fun getUserLocation(): Single<Array<Double>> {
+        return Single.create { emitter ->
+            fusedLocationProvider.lastLocation.addOnSuccessListener { location ->
+                location?.let {
+                    val latitude = it.latitude
+                    val longitude = it.longitude
+                    // add geoCoder code here if you want to access the user's country as well.
+                    emitter.onSuccess(arrayOf(latitude, longitude))
+                } ?: emitter.onError(Throwable("Couldn't find last location on this device. Your location settings might be turned off"))
+            }
+        }
     }
 }

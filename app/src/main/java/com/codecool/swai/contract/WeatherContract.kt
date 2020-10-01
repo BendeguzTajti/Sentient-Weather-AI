@@ -1,11 +1,9 @@
 package com.codecool.swai.contract
 
-import android.location.Geocoder
 import android.speech.SpeechRecognizer
 import android.view.LayoutInflater
 import androidx.appcompat.app.AlertDialog
 import com.codecool.swai.model.Weather
-import com.google.android.gms.location.FusedLocationProviderClient
 
 interface WeatherContract {
 
@@ -20,7 +18,7 @@ interface WeatherContract {
 
     interface WeatherPresenter: BaseContract.BasePresenter<WeatherView> {
         fun buildPermissionDialog(inflater: LayoutInflater, message: String, permission: String, requestCode: Int)
-        fun getWeatherDataByUserLocation(locationProvider: FusedLocationProviderClient)
+        fun getWeatherDataByUserLocation()
         fun getLatestWeatherData(): Weather?
         fun saveTempUnit(unit: String)
         fun registerSpeechListener(inflater: LayoutInflater, speechRecognizer: SpeechRecognizer)

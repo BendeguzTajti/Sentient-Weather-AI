@@ -29,8 +29,6 @@ import com.codecool.swai.contract.WeatherContract
 import com.codecool.swai.model.Weather
 import com.codecool.swai.presenter.WeatherPresenter
 import com.google.android.gms.common.api.ApiException
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import kotlinx.android.synthetic.main.activity_main.*
 import me.ibrahimsn.library.LiveSharedPreferences
@@ -52,7 +50,6 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
     private val forecastAdapter = ForecastAdapter()
     private var speechRecognizer: SpeechRecognizer? = null
     private lateinit var bottomSheet: BottomSheetBehavior<NestedScrollView>
-    private lateinit var locationProvider: FusedLocationProviderClient
     private lateinit var toast: Toast
     private lateinit var dialog: AlertDialog
 
@@ -61,7 +58,6 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
         setContentView(R.layout.activity_main)
         window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
         presenter.onAttach(this)
-        locationProvider = LocationServices.getFusedLocationProviderClient(this)
         speechRecognizer = if (SpeechRecognizer.isRecognitionAvailable(this)) SpeechRecognizer.createSpeechRecognizer(this) else null
         if(speechRecognizer != null && Geocoder.isPresent()) {
             presenter.registerSpeechListener(layoutInflater, speechRecognizer!!)
@@ -97,7 +93,7 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
             }
         } else {
             when(requestCode) {
-                FINE_LOCATION_RQ -> presenter.getWeatherDataByUserLocation(locationProvider)
+                FINE_LOCATION_RQ -> presenter.getWeatherDataByUserLocation()
                 RECORD_AUDIO_RQ -> {
                     cancelToast()
                     startSpeechListener()
@@ -170,7 +166,7 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
                 retryButton.setOnClickListener {
                     retryButton.visibility = View.INVISIBLE
                     retryLoading.visibility = View.VISIBLE
-                    presenter.getWeatherDataByUserLocation(locationProvider)
+                    presenter.getWeatherDataByUserLocation()
                 }
             }
             else -> Log.d(".displayError", "$exception")
@@ -182,7 +178,7 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
             when {
                 ContextCompat.checkSelfPermission(applicationContext, permission) == PackageManager.PERMISSION_GRANTED -> {
                     when(permission) {
-                        Manifest.permission.ACCESS_FINE_LOCATION -> presenter.getWeatherDataByUserLocation(locationProvider)
+                        Manifest.permission.ACCESS_FINE_LOCATION -> presenter.getWeatherDataByUserLocation()
                         Manifest.permission.RECORD_AUDIO -> {
                             cancelToast()
                             startSpeechListener()

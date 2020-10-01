@@ -18,7 +18,6 @@ import com.codecool.swai.contract.WeatherContract
 import com.codecool.swai.model.*
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.Status
-import com.google.android.gms.location.*
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
@@ -56,34 +55,16 @@ class WeatherPresenter(
         view?.showDialog(dialog)
     }
 
-    @SuppressLint("MissingPermission")
-    override fun getWeatherDataByUserLocation(locationProvider: FusedLocationProviderClient) {
+    override fun getWeatherDataByUserLocation() {
         view?.showLoading()
-        val locationRequest = LocationRequest.create().apply {
-            numUpdates = 1
-            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-            interval = 10000
-            fastestInterval = 3000
-        }
-        locationProvider.requestLocationUpdates(locationRequest, object : LocationCallback() {
-            override fun onLocationResult(locationResult: LocationResult?) {
-                super.onLocationResult(locationResult)
-                locationResult?.let {
-                    val lastLocation = it.lastLocation
-                    val latitude = lastLocation.latitude
-                    val longitude = lastLocation.longitude
-                    weatherDataManager.addTempUnit()
-                    getWeatherData(null, latitude, longitude)
-                } ?: Log.d("WeatherPresenter", "onLocationAvailability: An error occurred with the location. Please add error handling here.")
-            }
-
-            override fun onLocationAvailability(locationAvailability: LocationAvailability?) {
-                super.onLocationAvailability(locationAvailability)
-                if(locationAvailability?.isLocationAvailable == false) {
-                    Log.d("WeatherPresenter", "onLocationAvailability: The user disabled location sharing. Please add error handling here.")
-                }
-            }
-        }, null)
+        weatherDataManager.addTempUnit()
+        disposable = locationDataManager.getUserLocation()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        { locationList -> getWeatherData(null, locationList.first(), locationList.last()) },
+                        { error -> Log.d(".WeatherPresenter", "getWeatherDataByUserLocation: ${error.message}") }
+                )
     }
 
     override fun getLatestWeatherData(): Weather? {
