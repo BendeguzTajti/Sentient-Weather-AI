@@ -51,7 +51,6 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
     private var tempUnit: String? = null
     private val forecastAdapter = ForecastAdapter()
     private var speechRecognizer: SpeechRecognizer? = null
-    private var geoCoder: Geocoder? = null
     private lateinit var bottomSheet: BottomSheetBehavior<NestedScrollView>
     private lateinit var locationProvider: FusedLocationProviderClient
     private lateinit var toast: Toast
@@ -64,9 +63,8 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
         presenter.onAttach(this)
         locationProvider = LocationServices.getFusedLocationProviderClient(this)
         speechRecognizer = if (SpeechRecognizer.isRecognitionAvailable(this)) SpeechRecognizer.createSpeechRecognizer(this) else null
-        geoCoder = if (Geocoder.isPresent()) Geocoder(this, Locale.getDefault()) else null
-        if(speechRecognizer != null && geoCoder != null) {
-            presenter.registerSpeechListener(layoutInflater, speechRecognizer!!, geoCoder!!)
+        if(speechRecognizer != null && Geocoder.isPresent()) {
+            presenter.registerSpeechListener(layoutInflater, speechRecognizer!!)
             speechButtonContainer.visibility = View.VISIBLE
         }
         bottomSheet = BottomSheetBehavior.from(bottomSheetPage)
@@ -149,7 +147,9 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
     }
 
     override fun showLoading() {
-        loadingScreen.visibility = View.VISIBLE
+        if (errorContainer.visibility == View.GONE) {
+            loadingScreen.visibility = View.VISIBLE
+        }
     }
 
     override fun hideLoading() {

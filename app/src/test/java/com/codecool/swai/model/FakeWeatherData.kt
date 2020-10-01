@@ -1,8 +1,7 @@
 package com.codecool.swai.model
 
-import io.reactivex.Single
 
-class FakeWeatherData : WeatherManager {
+class FakeWeatherData {
 
     private val weatherCurrentSuccess = WeatherCurrent.Result(
         listOf(WeatherCurrent.Weather("Clear", "clear sky")),
@@ -34,17 +33,5 @@ class FakeWeatherData : WeatherManager {
 
     fun getWeatherFailure(): Weather {
         return Weather(weatherCurrentFailure, weatherForecastFailure)
-    }
-
-    override fun getWeatherDataByCoordinates(latitude: Double, longitude: Double): Single<Weather> {
-        TODO("Not yet implemented")
-    }
-
-    override fun addTempUnit() {
-        TODO("Not yet implemented")
-    }
-
-    override fun saveTempUnit(unit: String) {
-        TODO("Not yet implemented")
     }
 }

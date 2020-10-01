@@ -28,9 +28,4 @@ class WeatherModelTest {
         assertEquals("85°F", weatherTest.current.main.getTemp("Fahrenheit"))
     }
 
-    @Test
-    fun current_hour() {
-        assertEquals(15, weatherTest.current.getCurrentHour())
-    }
-
 }

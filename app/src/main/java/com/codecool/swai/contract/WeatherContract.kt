@@ -23,6 +23,6 @@ interface WeatherContract {
         fun getWeatherDataByUserLocation(locationProvider: FusedLocationProviderClient)
         fun getLatestWeatherData(): Weather?
         fun saveTempUnit(unit: String)
-        fun registerSpeechListener(inflater: LayoutInflater, speechRecognizer: SpeechRecognizer, geoCoder: Geocoder)
+        fun registerSpeechListener(inflater: LayoutInflater, speechRecognizer: SpeechRecognizer)
     }
 }

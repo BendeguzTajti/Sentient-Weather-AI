@@ -20,9 +20,10 @@ import org.mockito.junit.MockitoJUnitRunner
 @RunWith(MockitoJUnitRunner::class)
 class WeatherPresenterNetworkTest : KoinTest {
 
-    private var testView = mock(WeatherContract.WeatherView::class.java)
-    private var testDataManager = mock(WeatherManager::class.java)
-    private val presenter = WeatherPresenter(testDataManager)
+    private val testView = mock(WeatherContract.WeatherView::class.java)
+    private val testWeatherDataManager = mock(WeatherManager::class.java)
+    private val testLocationDataManager = mock(LocationManager::class.java)
+    private val presenter = WeatherPresenter(testWeatherDataManager, testLocationDataManager)
     private val fakeWeatherData = FakeWeatherData()
 
 
@@ -41,7 +42,7 @@ class WeatherPresenterNetworkTest : KoinTest {
         val weatherData = fakeWeatherData.getWeatherSuccess()
         val latitude = 	37.35
         val longitude = 59.61
-        given(testDataManager.getWeatherDataByCoordinates(ArgumentMatchers.anyDouble(), ArgumentMatchers.anyDouble()))
+        given(testWeatherDataManager.getWeatherDataByCoordinates(ArgumentMatchers.anyDouble(), ArgumentMatchers.anyDouble()))
             .willReturn(Single.just(weatherData))
         presenter.getWeatherData(null, latitude, longitude)
         then(testView).should().hideError()
@@ -56,7 +57,7 @@ class WeatherPresenterNetworkTest : KoinTest {
     fun getWeatherData_failed_network_call() {
         val latitude = 	0.0
         val longitude = 0.0
-        given(testDataManager.getWeatherDataByCoordinates(ArgumentMatchers.anyDouble(), ArgumentMatchers.anyDouble()))
+        given(testWeatherDataManager.getWeatherDataByCoordinates(ArgumentMatchers.anyDouble(), ArgumentMatchers.anyDouble()))
             .willReturn(Single.error(Exception()))
         presenter.getWeatherData(null, latitude, longitude)
         verify(testView, never()).hideError()
@@ -71,7 +72,7 @@ class WeatherPresenterNetworkTest : KoinTest {
         val weatherData = fakeWeatherData.getWeatherFailure()
         val latitude = 	0.0
         val longitude = 0.0
-        given(testDataManager.getWeatherDataByCoordinates(ArgumentMatchers.anyDouble(), ArgumentMatchers.anyDouble()))
+        given(testWeatherDataManager.getWeatherDataByCoordinates(ArgumentMatchers.anyDouble(), ArgumentMatchers.anyDouble()))
             .willReturn(Single.just(weatherData))
         presenter.getWeatherData(null, latitude, longitude)
         then(testView).should().hideError()

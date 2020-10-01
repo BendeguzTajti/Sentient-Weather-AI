@@ -6,7 +6,7 @@ import io.reactivex.Single
 import io.reactivex.functions.BiFunction
 import java.util.*
 
-class DataManager(private val sharedPreferences: SharedPreferences) : WeatherManager {
+class WeatherDataManager(private val sharedPreferences: SharedPreferences) : WeatherManager {
 
     companion object {
         private const val API_KEY = "24b031540acbc5b0a68d9c8f4692734d"

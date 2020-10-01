@@ -2,7 +2,6 @@ package com.codecool.swai.presenter
 
 import android.annotation.SuppressLint
 import android.content.res.ColorStateList
-import android.location.Geocoder
 import android.os.Build
 import android.os.Bundle
 import android.speech.RecognitionListener
@@ -16,8 +15,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.codecool.swai.R
 import com.codecool.swai.contract.WeatherContract
-import com.codecool.swai.model.Weather
-import com.codecool.swai.model.WeatherManager
+import com.codecool.swai.model.*
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.Status
 import com.google.android.gms.location.*
@@ -25,11 +23,12 @@ import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
-import java.io.IOException
 import java.net.HttpURLConnection
 import kotlin.collections.ArrayList
 
-class WeatherPresenter(private val dataManager: WeatherManager) : WeatherContract.WeatherPresenter {
+class WeatherPresenter(
+        private val weatherDataManager: WeatherManager,
+        private val locationDataManager: LocationManager) : WeatherContract.WeatherPresenter {
 
     private var view: WeatherContract.WeatherView? = null
     private var disposable: Disposable? = null
@@ -73,7 +72,7 @@ class WeatherPresenter(private val dataManager: WeatherManager) : WeatherContrac
                     val lastLocation = it.lastLocation
                     val latitude = lastLocation.latitude
                     val longitude = lastLocation.longitude
-                    dataManager.addTempUnit()
+                    weatherDataManager.addTempUnit()
                     getWeatherData(null, latitude, longitude)
                 } ?: Log.d("WeatherPresenter", "onLocationAvailability: An error occurred with the location. Please add error handling here.")
             }
@@ -88,14 +87,14 @@ class WeatherPresenter(private val dataManager: WeatherManager) : WeatherContrac
     }
 
     override fun getLatestWeatherData(): Weather? {
-        return dataManager.getLatestWeatherData()
+        return weatherDataManager.getLatestWeatherData()
     }
 
     override fun saveTempUnit(unit: String) {
-        dataManager.saveTempUnit(unit)
+        weatherDataManager.saveTempUnit(unit)
     }
 
-    override fun registerSpeechListener(inflater: LayoutInflater, speechRecognizer: SpeechRecognizer, geoCoder: Geocoder) {
+    override fun registerSpeechListener(inflater: LayoutInflater, speechRecognizer: SpeechRecognizer) {
         speechRecognizer.setRecognitionListener(object : RecognitionListener {
             val speechDialog = buildSpeechDialog(inflater)
 
@@ -140,7 +139,7 @@ class WeatherPresenter(private val dataManager: WeatherManager) : WeatherContrac
 
                 val matches: ArrayList<String>? = results!!.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                 val speechInput: String = matches!!.first()
-                disposable = getCoordinatesBySpeech(geoCoder, speechInput)
+                disposable = Single.fromCallable { locationDataManager.getCoordinatesBySpeech(speechInput) }
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe { locationList ->
@@ -169,12 +168,12 @@ class WeatherPresenter(private val dataManager: WeatherManager) : WeatherContrac
     }
 
     fun getWeatherData(cityName: String? = null, latitude: Double, longitude: Double) {
-        disposable = dataManager.getWeatherDataByCoordinates(latitude, longitude)
+        disposable = weatherDataManager.getWeatherDataByCoordinates(latitude, longitude)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         { weather ->
-                            dataManager.addLatestWeatherData(weather)
+                            weatherDataManager.addLatestWeatherData(weather)
                             view?.hideError()
                             view?.hideLoading()
                             view?.cancelDialog()
@@ -205,26 +204,6 @@ class WeatherPresenter(private val dataManager: WeatherManager) : WeatherContrac
                 cancelButton.setOnClickListener { view?.cancelSpeechRecognition() }
         }
         return dialog.create()
-    }
-
-    private fun getCoordinatesBySpeech(geoCoder: Geocoder, speechInput: String): Single<List<Any>> {
-        try {
-            val addresses = geoCoder.getFromLocationName(speechInput, 1)
-            if (addresses.isNotEmpty()) {
-                val location = addresses.first()
-                if (location.hasLatitude() && location.hasLongitude()) {
-                    var address = arrayOf(location.adminArea ?: location.locality, location.subLocality ?: location.locality ?: location.subAdminArea)
-                        .distinct()
-                        .filterNotNull()
-                        .joinToString(", ")
-                    if (address.isEmpty()) address = speechInput
-                    return Single.just(listOf(address, location.latitude, location.longitude))
-                }
-            }
-        } catch (e: IOException) {
-            return Single.just(emptyList())
-        }
-        return Single.just(emptyList())
     }
 
 }
