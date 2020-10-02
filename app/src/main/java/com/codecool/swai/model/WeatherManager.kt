@@ -6,6 +6,6 @@ interface WeatherManager {
     fun getWeatherDataByCoordinates(latitude: Double, longitude: Double): Single<Weather>
     fun addLatestWeatherData(weather: Weather)
     fun getLatestWeatherData(): Weather?
-    fun addTempUnit()
+    fun addTempUnit(countryCode: String)
     fun saveTempUnit(unit: String)
 }

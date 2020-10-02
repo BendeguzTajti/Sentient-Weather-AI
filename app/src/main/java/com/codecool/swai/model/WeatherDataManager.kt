@@ -34,11 +34,11 @@ class WeatherDataManager(private val sharedPreferences: SharedPreferences) : Wea
         return latestWeatherData
     }
 
-    override fun addTempUnit() {
+    override fun addTempUnit(countryCode: String) {
         val unit = sharedPreferences.getString("unit", null)
         if (unit == null) {
             val metricCountries = listOf("US", "BS", "KY", "LR", "PW", "MH", "FM")
-            if (metricCountries.contains(Locale.getDefault().country)) {
+            if (metricCountries.contains(countryCode)) {
                 sharedPreferences.edit().putString("unit", "Fahrenheit").apply()
             } else {
                 sharedPreferences.edit().putString("unit", "Celsius").apply()

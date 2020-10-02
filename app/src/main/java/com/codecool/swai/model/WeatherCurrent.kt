@@ -12,7 +12,7 @@ class WeatherCurrent {
 
     data class Result(val weather: List<Weather>, val main: Temperature, val timezone: Long, var name: String, val cod: Int) {
 
-        fun getCurrentHour(): Int {
+        private fun getCurrentHour(): Int {
             val timeZone = TimeZone.getTimeZone("UTC")
             timeZone.rawOffset = TimeUnit.SECONDS.toMillis(timezone).toInt()
             val dateFormat = SimpleDateFormat("HH", Locale.getDefault())
@@ -22,7 +22,7 @@ class WeatherCurrent {
 
         @ExperimentalStdlibApi
         fun getLocationName(): String {
-            return name.replace(" keruelet", " kerület", false).capitalize(Locale.getDefault())
+            return name.capitalize(Locale.getDefault())
         }
 
         fun getDescription(): String {

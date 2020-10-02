@@ -18,7 +18,6 @@ import com.codecool.swai.contract.WeatherContract
 import com.codecool.swai.model.*
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.Status
-import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
@@ -57,12 +56,19 @@ class WeatherPresenter(
 
     override fun getWeatherDataByUserLocation() {
         view?.showLoading()
-        weatherDataManager.addTempUnit()
         disposable = locationDataManager.getUserLocation()
+                .flatMap { coordinates -> locationDataManager.getUserCityAndCountryCode(coordinates.first(), coordinates.last())
+                        .subscribeOn(Schedulers.io()) }
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
-                        { locationList -> getWeatherData(null, locationList.first(), locationList.last()) },
+                        { locationList ->
+                            weatherDataManager.addTempUnit(locationList[3] as String)
+                            getWeatherData(
+                                locationList[2] as String,
+                                locationList[0] as Double,
+                                locationList[1] as Double
+                        ) },
                         { error -> Log.d(".WeatherPresenter", "getWeatherDataByUserLocation: ${error.message}") }
                 )
     }
@@ -120,22 +126,17 @@ class WeatherPresenter(
 
                 val matches: ArrayList<String>? = results!!.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                 val speechInput: String = matches!!.first()
-                disposable = Single.fromCallable { locationDataManager.getCoordinatesBySpeech(speechInput) }
+                disposable = locationDataManager.getCoordinatesBySpeech(speechInput)
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe { locationList ->
-                            if (locationList.isNotEmpty()){
-                                getWeatherData(
-                                        locationList[0] as String,
-                                        locationList[1] as Double,
-                                        locationList[2] as Double
-                                )
-                            } else {
-                                speechDialog.cancel()
-                                view?.showToast(R.string.no_results, Toast.LENGTH_SHORT)
-                            }}
+                        .subscribe({ locationList ->
+                            getWeatherData(
+                                    locationList[0] as String,
+                                    locationList[1] as Double,
+                                    locationList[2] as Double
+                            )
+                        }, { error -> Log.d(".WeatherPresenter", "onResults: $error")  })
             }
-
         })
     }
 
@@ -148,7 +149,7 @@ class WeatherPresenter(
         this.view = null
     }
 
-    fun getWeatherData(cityName: String? = null, latitude: Double, longitude: Double) {
+    fun getWeatherData(cityName: String, latitude: Double, longitude: Double) {
         disposable = weatherDataManager.getWeatherDataByCoordinates(latitude, longitude)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -158,7 +159,7 @@ class WeatherPresenter(
                             view?.hideError()
                             view?.hideLoading()
                             view?.cancelDialog()
-                            cityName?.let { weather.current.name = it }
+                            if (cityName.isNotEmpty()) weather.current.name = cityName
                             processWeatherData(weather) },
                         { error ->
                             view?.hideLoading()
