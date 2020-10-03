@@ -57,18 +57,14 @@ class WeatherPresenter(
     override fun getWeatherDataByUserLocation() {
         view?.showLoading()
         disposable = locationDataManager.getUserLocation()
-                .flatMap { coordinates -> locationDataManager.getUserCityAndCountryCode(coordinates.first(), coordinates.last())
+                .flatMap { location -> locationDataManager.getUserCityAndCountryCode(location)
                         .subscribeOn(Schedulers.io()) }
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
-                        { locationList ->
-                            weatherDataManager.addTempUnit(locationList[3] as String)
-                            getWeatherData(
-                                locationList[2] as String,
-                                locationList[0] as Double,
-                                locationList[1] as Double
-                        ) },
+                        { location ->
+                            weatherDataManager.addTempUnit(location.countryCode)
+                            getWeatherData(location) },
                         { error -> Log.d(".WeatherPresenter", "getWeatherDataByUserLocation: ${error.message}") }
                 )
     }
@@ -129,13 +125,9 @@ class WeatherPresenter(
                 disposable = locationDataManager.getCoordinatesBySpeech(speechInput)
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe({ locationList ->
-                            getWeatherData(
-                                    locationList[0] as String,
-                                    locationList[1] as Double,
-                                    locationList[2] as Double
-                            )
-                        }, { error -> Log.d(".WeatherPresenter", "onResults: $error")  })
+                        .subscribe(
+                                { location -> getWeatherData(location) },
+                                { error -> Log.d(".WeatherPresenter", "onResults: $error")  })
             }
         })
     }
@@ -149,8 +141,8 @@ class WeatherPresenter(
         this.view = null
     }
 
-    fun getWeatherData(cityName: String, latitude: Double, longitude: Double) {
-        disposable = weatherDataManager.getWeatherDataByCoordinates(latitude, longitude)
+    fun getWeatherData(location: Location) {
+        disposable = weatherDataManager.getWeatherDataByCoordinates(location.latitude, location.longitude)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
@@ -159,7 +151,7 @@ class WeatherPresenter(
                             view?.hideError()
                             view?.hideLoading()
                             view?.cancelDialog()
-                            if (cityName.isNotEmpty()) weather.current.name = cityName
+                            if (location.cityName.isNotEmpty()) weather.current.name = location.cityName
                             processWeatherData(weather) },
                         { error ->
                             view?.hideLoading()

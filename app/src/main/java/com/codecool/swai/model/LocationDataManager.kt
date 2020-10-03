@@ -22,7 +22,7 @@ class LocationDataManager(
         priority = LocationRequest.PRIORITY_HIGH_ACCURACY
     }
 
-    override fun getCoordinatesBySpeech(speechInput: String): Single<List<Any>> {
+    override fun getCoordinatesBySpeech(speechInput: String): Single<Location> {
         return Single.create { emitter ->
             try {
                 val addresses = geoCoder.getFromLocationName(speechInput, 1)
@@ -34,7 +34,7 @@ class LocationDataManager(
                                 .filterNotNull()
                                 .joinToString(", ")
                         if (address.isEmpty()) address = speechInput
-                        emitter.onSuccess(listOf(address, location.latitude, location.longitude))
+                        emitter.onSuccess(Location(location.latitude, location.longitude, address))
                     }
                 }
             } catch (e: IOException) {
@@ -44,14 +44,14 @@ class LocationDataManager(
     }
 
     @SuppressLint("MissingPermission")
-    override fun getUserLocation(): Single<Array<Double>> {
+    override fun getUserLocation(): Single<Location> {
         return Single.create { emitter ->
             fusedLocationProvider.requestLocationUpdates(locationRequest, object : LocationCallback() {
                 override fun onLocationResult(locationResult: LocationResult?) {
                     super.onLocationResult(locationResult)
                     locationResult?.let {
                         val lastLocation = it.lastLocation
-                        emitter.onSuccess(arrayOf(lastLocation.latitude, lastLocation.longitude))
+                        emitter.onSuccess(Location(lastLocation.latitude, lastLocation.longitude))
                     } ?: emitter.onError(Throwable("Couldn't find locations. Location sharing might be disabled."))
                 }
 
@@ -65,16 +65,18 @@ class LocationDataManager(
         }
     }
 
-    override fun getUserCityAndCountryCode(latitude: Double, longitude: Double): Single<List<Any>> {
+    override fun getUserCityAndCountryCode(location: Location): Single<Location> {
         return Single.create { emitter ->
             try {
-                geoCoder.getFromLocation(latitude, longitude, 1).firstOrNull()?.let {
+                geoCoder.getFromLocation(location.latitude, location.longitude, 1).firstOrNull()?.let {
                     val cityName: String? = arrayOf(it.adminArea ?: it.locality, it.subLocality
                             ?: it.locality ?: it.subAdminArea)
                             .distinct()
                             .filterNotNull()
                             .joinToString(", ")
-                    emitter.onSuccess(listOf(latitude, longitude, cityName ?: "", it.locale.country))
+                    location.cityName = cityName ?: ""
+                    location.countryCode = it.locale.country
+                    emitter.onSuccess(location)
                 }
             } catch (e: Exception) {
                 emitter.onError(Throwable("An error occurred in getUserCityAndCountryCode: $e"))
