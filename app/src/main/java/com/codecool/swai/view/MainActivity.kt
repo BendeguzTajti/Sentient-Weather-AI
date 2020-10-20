@@ -3,7 +3,6 @@ package com.codecool.swai.view
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.drawable.ColorDrawable
 import android.location.Geocoder
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
@@ -17,7 +16,6 @@ import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.widget.PopupMenu
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.widget.NestedScrollView
@@ -26,6 +24,10 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.codecool.swai.R
 import com.codecool.swai.adapter.ForecastAdapter
 import com.codecool.swai.contract.WeatherContract
+import com.codecool.swai.dialog.PermissionDialog
+import com.codecool.swai.dialog.SpeechDialog
+import com.codecool.swai.listener.LocationListenerCallback
+import com.codecool.swai.listener.LocationSpeechListener
 import com.codecool.swai.model.Weather
 import com.codecool.swai.presenter.WeatherPresenter
 import com.google.android.gms.common.api.ApiException
@@ -33,11 +35,18 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import kotlinx.android.synthetic.main.activity_main.*
 import me.ibrahimsn.library.LiveSharedPreferences
 import org.koin.android.ext.android.inject
+import java.net.ConnectException
+import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 import java.util.*
+import javax.net.ssl.SSLHandshakeException
 
 
-class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
+class MainActivity : AppCompatActivity(),
+        WeatherContract.WeatherView,
+        PermissionDialog.OnPermissionDialogClosedListener,
+        SpeechDialog.OnSpeechDialogCanceledListener,
+        LocationListenerCallback{
 
     companion object {
         private const val FINE_LOCATION_RQ = 101
@@ -48,30 +57,33 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
     private val liveSharedPref: LiveSharedPreferences by inject()
     private var tempUnit: String? = null
     private val forecastAdapter = ForecastAdapter()
-    private var speechRecognizer: SpeechRecognizer? = null
+    private val permissionDialog = PermissionDialog()
+    private val speechDialog = SpeechDialog()
+    private val locationSpeechListener = LocationSpeechListener
+    private lateinit var speechRecognizer: SpeechRecognizer
     private lateinit var bottomSheet: BottomSheetBehavior<NestedScrollView>
     private lateinit var toast: Toast
-    private lateinit var dialog: AlertDialog
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
         presenter.onAttach(this)
-        speechRecognizer = if (SpeechRecognizer.isRecognitionAvailable(this)) SpeechRecognizer.createSpeechRecognizer(this) else null
-        if(speechRecognizer != null && Geocoder.isPresent()) {
-            presenter.registerSpeechListener(layoutInflater, speechRecognizer!!)
-            speechButtonContainer.visibility = View.VISIBLE
-        }
         bottomSheet = BottomSheetBehavior.from(bottomSheetPage)
         recyclerView.adapter = forecastAdapter
         recyclerView.layoutManager = LinearLayoutManager(this)
-        addPopupMenuListener()
-        addBottomSheetListener()
-        speechButton.setOnClickListener { checkForPermission(Manifest.permission.RECORD_AUDIO, RECORD_AUDIO_RQ, getString(R.string.record_audio_dialog_message)) }
+        if(SpeechRecognizer.isRecognitionAvailable(this) && Geocoder.isPresent()) {
+            speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this)
+            locationSpeechListener.onAttach(this)
+            speechRecognizer.setRecognitionListener(locationSpeechListener)
+            speechButtonContainer.visibility = View.VISIBLE
+        }
         liveSharedPref.getString("unit", "Celsius").observe(this, Observer<String> { value ->
             updateWeatherTemp(value)  })
         checkForPermission(Manifest.permission.ACCESS_FINE_LOCATION, FINE_LOCATION_RQ, getString(R.string.location_dialog_message))
+        addPopupMenuListener()
+        addBottomSheetListener()
+        speechButton.setOnClickListener { checkForPermission(Manifest.permission.RECORD_AUDIO, RECORD_AUDIO_RQ, getString(R.string.record_audio_dialog_message)) }
     }
 
     override fun onPause() {
@@ -80,9 +92,9 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
     }
 
     override fun onDestroy() {
-        cancelDialog()
         presenter.onDetach()
-        speechRecognizer?.destroy()
+        locationSpeechListener.onDetach()
+        if (this::speechRecognizer.isInitialized) speechRecognizer.destroy()
         super.onDestroy()
     }
 
@@ -102,11 +114,6 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
         }
     }
 
-    override fun requestPermission(permission: String, requestCode: Int) {
-        dialog.dismiss()
-        ActivityCompat.requestPermissions(this@MainActivity, arrayOf(permission), requestCode)
-    }
-
     @ExperimentalStdlibApi
     override fun displayWeatherData(weather: Weather) {
         createMainPageTheme(weather)
@@ -117,29 +124,8 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
         bottomSheet.isDraggable = true
     }
 
-    override fun showToast(message: Int, toastLength: Int) {
-        if (this::toast.isInitialized) {
-            toast.cancel()
-        }
-        toast = Toast.makeText(this, getString(message), toastLength)
-        toast.show()
-    }
-
-    override fun showDialog(dialog: AlertDialog) {
-        this.dialog = dialog
-        dialog.window?.setBackgroundDrawable(ColorDrawable(ContextCompat.getColor(this, R.color.colorTransparent)))
-        dialog.show()
-    }
-
-    override fun cancelDialog() {
-        if (this::dialog.isInitialized) {
-            dialog.dismiss()
-        }
-    }
-
-    override fun cancelSpeechRecognition() {
-        speechRecognizer?.cancel()
-        cancelDialog()
+    override fun cancelSpeechDialog() {
+        if (speechDialog.isVisible) speechDialog.dismiss()
     }
 
     override fun showLoading() {
@@ -159,17 +145,40 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
     override fun displayError(exception: Throwable) {
         when(exception) {
             is ApiException -> showToast(R.string.server_error_message, Toast.LENGTH_LONG)
-            is UnknownHostException -> {
-                retryButton.visibility = View.VISIBLE
-                retryLoading.visibility = View.INVISIBLE
-                errorContainer.visibility = View.VISIBLE
-                retryButton.setOnClickListener {
-                    retryButton.visibility = View.INVISIBLE
-                    retryLoading.visibility = View.VISIBLE
-                    presenter.getWeatherDataByUserLocation()
-                }
+            is NullPointerException -> {
+                cancelSpeechDialog()
+                showToast(R.string.no_results, Toast.LENGTH_SHORT)
             }
-            else -> Log.d(".displayError", "$exception")
+            is SocketTimeoutException -> displayInternetError()
+            is SSLHandshakeException -> displayInternetError()
+            is UnknownHostException -> displayInternetError()
+            is ConnectException -> displayInternetError()
+            else -> Log.d(".MainActivity", ".displayError: $exception")
+        }
+    }
+
+    override fun requestPermission(permission: String, requestCode: Int) {
+        ActivityCompat.requestPermissions(this@MainActivity, arrayOf(permission), requestCode)
+    }
+
+    override fun cancelRecognition() {
+        speechRecognizer.cancel()
+    }
+
+    override fun onRecognitionStarted() {
+        speechDialog.show(supportFragmentManager, speechDialog.tag)
+    }
+
+    override fun onRecognitionResult(speechInput: String) {
+        presenter.getWeatherDataBySpeech(speechInput)
+    }
+
+    override fun onRecognitionError(error: Int) {
+        speechDialog.dismiss()
+        if (error == SpeechRecognizer.ERROR_NETWORK || error == SpeechRecognizer.ERROR_SERVER) {
+            showToast(R.string.no_connection_message, Toast.LENGTH_LONG)
+        } else if(error == SpeechRecognizer.ERROR_NO_MATCH) {
+            showToast(R.string.speech_no_match, Toast.LENGTH_SHORT)
         }
     }
 
@@ -185,10 +194,25 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
                         }
                     }
                 }
-                shouldShowRequestPermissionRationale(permission) -> presenter.buildPermissionDialog(layoutInflater, message, permission, requestCode)
+                shouldShowRequestPermissionRationale(permission) -> {
+                    val bundle = Bundle()
+                    bundle.putString(PermissionDialog.PERMISSION_KEY, permission)
+                    bundle.putInt(PermissionDialog.REQUEST_CODE_KEY, requestCode)
+                    bundle.putString(PermissionDialog.DIALOG_MESSAGE_KEY, message)
+                    permissionDialog.arguments = bundle
+                    permissionDialog.show(supportFragmentManager, permissionDialog.tag)
+                }
                 else -> ActivityCompat.requestPermissions(this, arrayOf(permission), requestCode)
             }
         }
+    }
+
+    private fun showToast(message: Int, toastLength: Int) {
+        if (this::toast.isInitialized) {
+            toast.cancel()
+        }
+        toast = Toast.makeText(this, getString(message), toastLength)
+        toast.show()
     }
 
     private fun createMainPageTheme(weather: Weather) {
@@ -276,7 +300,7 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
         speechIntent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 1500)
         speechIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
         speechIntent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, packageName)
-        speechRecognizer?.startListening(speechIntent)
+        speechRecognizer.startListening(speechIntent)
     }
 
     private fun updateWeatherTemp(tempUnit: String) {
@@ -284,8 +308,8 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
             this.tempUnit = tempUnit
             val weatherData = presenter.getLatestWeatherData()
             weatherData?.let {
-                val slideAnim = AnimationUtils.loadAnimation(this, R.anim.text_fade_in_out)
-                slideAnim.setAnimationListener(object :Animation.AnimationListener {
+                val fadeAnim = AnimationUtils.loadAnimation(this, R.anim.text_fade_in_out)
+                fadeAnim.setAnimationListener(object :Animation.AnimationListener {
                     override fun onAnimationRepeat(animation: Animation?) {
                         mainTemp.text = it.current.main.getTemp(tempUnit)
                     }
@@ -298,7 +322,7 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
                         pauseMainPageAnimations()
                     }
                 })
-                mainTemp.startAnimation(slideAnim)
+                mainTemp.startAnimation(fadeAnim)
                 forecastAdapter.updateForecastTemp(tempUnit)
             }
         }
@@ -322,5 +346,16 @@ class MainActivity : AppCompatActivity(), WeatherContract.WeatherView {
             mainBackground.resumeAnimation()
         }
         mainWeatherIcon.resumeAnimation()
+    }
+
+    private fun displayInternetError() {
+        retryButton.visibility = View.VISIBLE
+        retryLoading.visibility = View.INVISIBLE
+        errorContainer.visibility = View.VISIBLE
+        retryButton.setOnClickListener {
+            retryButton.visibility = View.INVISIBLE
+            retryLoading.visibility = View.VISIBLE
+            presenter.getWeatherDataByUserLocation()
+        }
     }
 }

@@ -1,19 +1,5 @@
 package com.codecool.swai.presenter
 
-import android.annotation.SuppressLint
-import android.content.res.ColorStateList
-import android.os.Build
-import android.os.Bundle
-import android.speech.RecognitionListener
-import android.speech.SpeechRecognizer
-import android.util.Log
-import android.view.LayoutInflater
-import android.widget.Button
-import android.widget.ImageButton
-import android.widget.TextView
-import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
-import com.codecool.swai.R
 import com.codecool.swai.contract.WeatherContract
 import com.codecool.swai.model.*
 import com.google.android.gms.common.api.ApiException
@@ -22,7 +8,6 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import java.net.HttpURLConnection
-import kotlin.collections.ArrayList
 
 class WeatherPresenter(
         private val weatherDataManager: WeatherManager,
@@ -30,29 +15,6 @@ class WeatherPresenter(
 
     private var view: WeatherContract.WeatherView? = null
     private var disposable: Disposable? = null
-
-    @SuppressLint("InflateParams")
-    override fun buildPermissionDialog(inflater: LayoutInflater, message: String, permission: String, requestCode: Int) {
-        val dialogForm = inflater.inflate(R.layout.permission_dialog, null)
-        val dialog = AlertDialog.Builder(inflater.context)
-            .apply {
-                setCancelable(false)
-                setView(dialogForm)
-                val dialogTitle = dialogForm.findViewById<TextView>(R.id.permissionDialogTitle)
-                val dialogMessage = dialogForm.findViewById<TextView>(R.id.permissionDialogMessage)
-                val positiveButton = dialogForm.findViewById<Button>(R.id.positiveButton)
-                dialogTitle.text = context.getString(R.string.permission_dialog_title)
-                dialogMessage.text = message
-                positiveButton.text = context.getString(R.string.permission_dialog_positive_button)
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    positiveButton.backgroundTintList = ColorStateList.valueOf(context.getColor(R.color.colorInformation))
-                }
-                positiveButton.setOnClickListener {
-                    view?.requestPermission(permission, requestCode)
-                }
-            }.create()
-        view?.showDialog(dialog)
-    }
 
     override fun getWeatherDataByUserLocation() {
         view?.showLoading()
@@ -65,8 +27,19 @@ class WeatherPresenter(
                         { location ->
                             weatherDataManager.addTempUnit(location.countryCode)
                             getWeatherData(location) },
-                        { error -> Log.d(".WeatherPresenter", "getWeatherDataByUserLocation: ${error.message}") }
+                        { error ->
+                            view?.hideLoading()
+                            view?.displayError(error) }
                 )
+    }
+
+    override fun getWeatherDataBySpeech(speechInput: String) {
+        disposable = locationDataManager.getCoordinatesBySpeech(speechInput)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        { location -> getWeatherData(location) },
+                        { error -> view?.displayError(error)  })
     }
 
     override fun getLatestWeatherData(): Weather? {
@@ -75,61 +48,6 @@ class WeatherPresenter(
 
     override fun saveTempUnit(unit: String) {
         weatherDataManager.saveTempUnit(unit)
-    }
-
-    override fun registerSpeechListener(inflater: LayoutInflater, speechRecognizer: SpeechRecognizer) {
-        speechRecognizer.setRecognitionListener(object : RecognitionListener {
-            val speechDialog = buildSpeechDialog(inflater)
-
-            override fun onReadyForSpeech(params: Bundle?) {
-                view?.showDialog(speechDialog)
-            }
-
-            override fun onRmsChanged(rmsdB: Float) {
-
-            }
-
-            override fun onBufferReceived(buffer: ByteArray?) {
-
-            }
-
-            override fun onPartialResults(partialResults: Bundle?) {
-
-            }
-
-            override fun onEvent(eventType: Int, params: Bundle?) {
-
-            }
-
-            override fun onBeginningOfSpeech() {
-
-            }
-
-            override fun onEndOfSpeech() {
-
-            }
-
-            override fun onError(error: Int) {
-                speechDialog.cancel()
-                if (error == SpeechRecognizer.ERROR_NETWORK || error == SpeechRecognizer.ERROR_SERVER) {
-                    view?.showToast(R.string.no_connection_message, Toast.LENGTH_SHORT)
-                } else if(error == SpeechRecognizer.ERROR_NO_MATCH) {
-                    view?.showToast(R.string.speech_no_match, Toast.LENGTH_LONG)
-                }
-            }
-
-            override fun onResults(results: Bundle?) {
-
-                val matches: ArrayList<String>? = results!!.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
-                val speechInput: String = matches!!.first()
-                disposable = locationDataManager.getCoordinatesBySpeech(speechInput)
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(
-                                { location -> getWeatherData(location) },
-                                { error -> Log.d(".WeatherPresenter", "onResults: $error")  })
-            }
-        })
     }
 
     override fun onAttach(view: WeatherContract.WeatherView) {
@@ -150,12 +68,12 @@ class WeatherPresenter(
                             weatherDataManager.addLatestWeatherData(weather)
                             view?.hideError()
                             view?.hideLoading()
-                            view?.cancelDialog()
+                            view?.cancelSpeechDialog()
                             if (location.cityName.isNotEmpty()) weather.current.name = location.cityName
                             processWeatherData(weather) },
                         { error ->
                             view?.hideLoading()
-                            view?.cancelDialog()
+                            view?.cancelSpeechDialog()
                             view?.displayError(error) })
     }
 
@@ -166,18 +84,4 @@ class WeatherPresenter(
             view?.displayError(ApiException(Status.RESULT_CANCELED))
         }
     }
-
-    @SuppressLint("InflateParams")
-    private fun buildSpeechDialog(inflater: LayoutInflater): AlertDialog {
-        val dialogForm = inflater.inflate(R.layout.speech_dialog, null)
-        val dialog = AlertDialog.Builder(inflater.context)
-            .apply {
-                setCancelable(false)
-                setView(dialogForm)
-                val cancelButton = dialogForm.findViewById<ImageButton>(R.id.speechCancelButton)
-                cancelButton.setOnClickListener { view?.cancelSpeechRecognition() }
-        }
-        return dialog.create()
-    }
-
 }

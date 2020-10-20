@@ -14,8 +14,8 @@ import org.koin.dsl.module
 
 val appModule = module {
     single { androidContext().getSharedPreferences("userPref", Context.MODE_PRIVATE) }
-    single { WeatherDataManager(get()) as WeatherManager }
-    single { LocationDataManager(Geocoder(androidContext()), LocationServices.getFusedLocationProviderClient(androidContext())) as LocationManager }
+    single<WeatherManager> { WeatherDataManager(get()) }
+    single<LocationManager> { LocationDataManager(Geocoder(androidContext()), LocationServices.getFusedLocationProviderClient(androidContext())) }
     single { WeatherPresenter(get(), get()) }
     single { LiveSharedPreferences(get()) }
 }

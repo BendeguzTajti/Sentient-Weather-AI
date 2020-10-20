@@ -24,7 +24,6 @@ class WeatherPresenterNetworkTest : KoinTest {
     private val testWeatherDataManager = mock(WeatherManager::class.java)
     private val testLocationDataManager = mock(LocationManager::class.java)
     private val presenter = WeatherPresenter(testWeatherDataManager, testLocationDataManager)
-    private val fakeWeatherData = FakeWeatherData()
 
 
     @Before
@@ -39,46 +38,41 @@ class WeatherPresenterNetworkTest : KoinTest {
 
     @Test
     fun getWeatherData_successful_network_call() {
-        val weatherData = fakeWeatherData.getWeatherSuccess()
-        val latitude = 	37.35
-        val longitude = 59.61
+        val locationTest = Location(37.35, 59.61)
         given(testWeatherDataManager.getWeatherDataByCoordinates(ArgumentMatchers.anyDouble(), ArgumentMatchers.anyDouble()))
-            .willReturn(Single.just(weatherData))
-        presenter.getWeatherData(null, latitude, longitude)
+            .willReturn(Single.just(weatherSuccess))
+        presenter.getWeatherData(locationTest)
         then(testView).should().hideError()
         then(testView).should().hideLoading()
-        then(testView).should().cancelDialog()
-        then(testView).should().displayWeatherData(weatherData)
+        then(testView).should().cancelSpeechDialog()
+        then(testView).should().displayWeatherData(weatherSuccess)
         verify(testView, never()).displayError(com.nhaarman.mockitokotlin2.any())
         then(testView).shouldHaveNoMoreInteractions()
     }
 
     @Test
     fun getWeatherData_failed_network_call() {
-        val latitude = 	0.0
-        val longitude = 0.0
+        val locationTest = Location(0.0, 0.0)
         given(testWeatherDataManager.getWeatherDataByCoordinates(ArgumentMatchers.anyDouble(), ArgumentMatchers.anyDouble()))
             .willReturn(Single.error(Exception()))
-        presenter.getWeatherData(null, latitude, longitude)
+        presenter.getWeatherData(locationTest)
         verify(testView, never()).hideError()
         then(testView).should().hideLoading()
-        then(testView).should().cancelDialog()
+        then(testView).should().cancelSpeechDialog()
         then(testView).should().displayError(com.nhaarman.mockitokotlin2.any())
         then(testView).shouldHaveNoMoreInteractions()
     }
 
     @Test
     fun getWeatherData_wrong_weather_data() {
-        val weatherData = fakeWeatherData.getWeatherFailure()
-        val latitude = 	0.0
-        val longitude = 0.0
+        val locationTest = Location(0.0, 0.0)
         given(testWeatherDataManager.getWeatherDataByCoordinates(ArgumentMatchers.anyDouble(), ArgumentMatchers.anyDouble()))
-            .willReturn(Single.just(weatherData))
-        presenter.getWeatherData(null, latitude, longitude)
+            .willReturn(Single.just(weatherFailure))
+        presenter.getWeatherData(locationTest)
         then(testView).should().hideError()
         then(testView).should().hideLoading()
-        then(testView).should().cancelDialog()
-        verify(testView, never()).displayWeatherData(weatherData)
+        then(testView).should().cancelSpeechDialog()
+        verify(testView, never()).displayWeatherData(weatherFailure)
         then(testView).should().displayError(com.nhaarman.mockitokotlin2.any())
         then(testView).shouldHaveNoMoreInteractions()
     }

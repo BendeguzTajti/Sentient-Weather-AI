@@ -1,16 +1,27 @@
 <resources>
-    <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
-        <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorTransparent</item>
         <item name="colorAccent">@color/colorAccent</item>
-        <item name="android:popupMenuStyle">@style/popupMenuStyle</item>
+        <item name="android:popupMenuStyle">@style/PopupMenuStyle</item>
     </style>
 
-    <style name="popupMenuStyle" parent="Widget.AppCompat.Light.PopupMenu">
+    <style name="PopupMenuStyle" parent="Widget.AppCompat.Light.PopupMenu">
         <item name="android:popupBackground">@color/colorPrimary</item>
         <item name="android:fontFamily">@font/montserrat</item>
     </style>
 
+    <style name="PermissionDialogStyle" parent="Base.Theme.AppCompat.Dialog">
+        <item name="android:windowMinWidthMajor">95%</item>
+        <item name="android:windowMinWidthMinor">95%</item>
+        <item name="android:windowBackground">@color/colorTransparent</item>
+        <item name="backgroundTint">@color/colorInformation</item>
+    </style>
+
+    <style name="SpeechDialogStyle" parent="Base.Theme.AppCompat.Dialog">
+        <item name="android:windowMinWidthMajor">95%</item>
+        <item name="android:windowMinWidthMinor">95%</item>
+        <item name="android:windowBackground">@color/colorTransparent</item>
+        <item name="backgroundTint">@color/colorCircleCancelButton</item>
+    </style>
 </resources>

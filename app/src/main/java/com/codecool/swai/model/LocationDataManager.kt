@@ -6,6 +6,7 @@ import android.os.Looper
 import com.google.android.gms.location.*
 import io.reactivex.Single
 import java.io.IOException
+import java.net.ConnectException
 
 class LocationDataManager(
         private val geoCoder: Geocoder,
@@ -38,8 +39,9 @@ class LocationDataManager(
                     }
                 }
             } catch (e: IOException) {
-                emitter.onError(Throwable("An error occurred in getUserCityAndCountryCode: $e"))
+                emitter.onError(ConnectException("Internet connection lost"))
             }
+            if (!emitter.isDisposed) emitter.onError(NullPointerException("No location found."))
         }
     }
 
@@ -78,8 +80,8 @@ class LocationDataManager(
                     location.countryCode = it.locale.country
                     emitter.onSuccess(location)
                 }
-            } catch (e: Exception) {
-                emitter.onError(Throwable("An error occurred in getUserCityAndCountryCode: $e"))
+            } catch (e: IOException) {
+                emitter.onError(ConnectException("Internet connection lost."))
             }
         }
     }

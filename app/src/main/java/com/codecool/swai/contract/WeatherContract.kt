@@ -1,26 +1,18 @@
 package com.codecool.swai.contract
 
-import android.speech.SpeechRecognizer
-import android.view.LayoutInflater
-import androidx.appcompat.app.AlertDialog
 import com.codecool.swai.model.Weather
 
 interface WeatherContract {
 
     interface WeatherView: BaseContract.BaseView {
-        fun requestPermission(permission: String, requestCode: Int)
         fun displayWeatherData(weather: Weather)
-        fun showToast(message: Int, toastLength: Int)
-        fun showDialog(dialog: AlertDialog)
-        fun cancelDialog()
-        fun cancelSpeechRecognition()
+        fun cancelSpeechDialog()
     }
 
     interface WeatherPresenter: BaseContract.BasePresenter<WeatherView> {
-        fun buildPermissionDialog(inflater: LayoutInflater, message: String, permission: String, requestCode: Int)
         fun getWeatherDataByUserLocation()
+        fun getWeatherDataBySpeech(speechInput: String)
         fun getLatestWeatherData(): Weather?
         fun saveTempUnit(unit: String)
-        fun registerSpeechListener(inflater: LayoutInflater, speechRecognizer: SpeechRecognizer)
     }
 }

@@ -13,4 +13,5 @@
     <color name="colorSpeechDialogText">#131F35</color>
     <color name="colorCircleCancelButton">#2C6CEA</color>
     <color name="colorRetryButton">#CC4379</color>
+    <color name="colorText">#333</color>
 </resources>

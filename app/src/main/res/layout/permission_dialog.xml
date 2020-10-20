@@ -23,10 +23,11 @@
             android:padding="@dimen/dialog_title_padding"
             android:textSize="@dimen/dialog_title_size"
             android:textStyle="bold"
+            android:textColor="@color/colorText"
+            android:text="@string/permission_dialog_title"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:text="Permission Required" />
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/permissionDialogMessage"
@@ -34,8 +35,10 @@
             android:layout_height="wrap_content"
             android:fontFamily="@font/montserrat"
             android:gravity="center"
-            android:padding="@dimen/dialog_message_padding"
+            android:paddingTop="@dimen/dialog_message_padding"
+            android:paddingBottom="@dimen/dialog_message_padding"
             android:textSize="@dimen/dialog_message_size"
+            android:textColor="@color/colorText"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/permissionDialogTitle"
@@ -49,9 +52,9 @@
             android:fontFamily="@font/montserrat"
             android:textColor="@color/colorPrimary"
             android:textStyle="bold"
+            android:text="@string/permission_dialog_positive_button"
             app:layout_constraintTop_toBottomOf="@+id/permissionDialogMessage"
-            tools:backgroundTint="@color/colorInformation"
-            tools:text="OK" />
+            tools:backgroundTint="@color/colorInformation" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
